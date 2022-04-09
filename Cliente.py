@@ -6,14 +6,10 @@ def main():
         print('%s <ip> <porta>' % sys.argv[0])
         sys.exit(0)
 
-    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip    = sys.argv[1] 
-    porta = int(sys.argv[2])
-
     while True:
         
         opcao, subOpcao = menu() 
-        if opcao == 0 and subOpcao == 0:
+        if opcao == 0:
             break
 
         requisicao(opcao, subOpcao)
@@ -71,8 +67,30 @@ def menu():
                 return (opcao, subOpcao)
 
 
+def requisicao(opcao, subOpcao):
+    if opcao == 1:
+        if subOpcao == 1:
+            cadastroLivro()
+        elif subOpcao == 2:
+            modificarLivro()
+        else:
+            removerLivro()
+    else:
+        if subOpcao == 1:
+            consultaTitulo()
+        elif subOpcao == 2:
+            consultaAutor()
+        else:
+            consultaAnoEdicao()
+
+            
 def cadastroLivro():
-    # TODO
+    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip    = sys.argv[1] 
+    porta = int(sys.argv[2])
+
+    # TODO Ler todas as informações do livro
+    # TODO Enviar o livro novo pro servidor
     pass
 
 def modificarLivro():
@@ -94,11 +112,6 @@ def consultaAutor():
 def consultaAnoEdicao():
     # TODO
     pass
-
-def requisicao(opcao, subOpcao):
-    # TODO
-    pass
-    
 
 if __name__ == '__main__':
     main()
