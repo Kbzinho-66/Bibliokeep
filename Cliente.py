@@ -9,17 +9,17 @@ def main():
     while True:
         
         opcao, subOpcao = menu() 
-        if opcao == 0:
+        if opcao:
+            requisicao(opcao, subOpcao)
+        else:
             break
-
-        requisicao(opcao, subOpcao)
 
 
 def menu():
     opcao = 1
     subOpcao = 0
 
-    while opcao != 0:
+    while opcao:
         print('_______________________________')
         print('1. Cadastro de livros.')
         print('2. Consultas.')
@@ -89,28 +89,74 @@ def cadastroLivro():
     ip    = sys.argv[1] 
     porta = int(sys.argv[2])
 
-    # TODO Ler todas as informações do livro
+    print('Insira as informações do livro:')
+    titulo = input('Título: ')
+    autor  = input('Autor: ')
+    edicao = input('Edição: ')
+    ano    = input('Ano de publicação: ')
+
     # TODO Enviar o livro novo pro servidor
     pass
 
 def modificarLivro():
-    # TODO
+    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip    = sys.argv[1] 
+    porta = int(sys.argv[2])
+
+    titulo = input('Insira o título do livro a ser modificado: ')
+    # TODO Buscar todos os livros que contêm essas palavras
+    # TODO Deixar escolher um desses
+    # TODO Ler as novas informações
+
     pass
 
 def removerLivro():
-    # TODO
+    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip    = sys.argv[1] 
+    porta = int(sys.argv[2])
+
+    titulo = input('Insira o título do livro a ser modificado: ')
+    # TODO Buscar todos os livros que contêm essas palavras
+    # TODO Deixar escolher um desses
+    # TODO Enviar a requisição de delete pro servidor
+
     pass
 
 def consultaTitulo():
-    # TODO
+    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip    = sys.argv[1] 
+    porta = int(sys.argv[2])
+
+    titulo = input('Insira o título a buscar: ')
+    # TODO Buscar todos os livros que contêm essas palavras
+    # TODO Deixar escolher um desses
+    # TODO Mostrar as informações
+
     pass
 
 def consultaAutor():
-    # TODO
+    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip    = sys.argv[1] 
+    porta = int(sys.argv[2])
+
+    autor = input('Insira o autor a buscar: ')
+    # TODO Buscar todos os livros desse autor
+    # TODO Deixar escolher um desses
+    # TODO Mostrar as informações
+    
     pass
 
 def consultaAnoEdicao():
-    # TODO
+    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip    = sys.argv[1] 
+    porta = int(sys.argv[2])
+
+    ano    = input('Insira o ano a buscar: ')
+    edicao = input('Insira a edição: ')
+    # TODO Buscar todos os livros desse autor
+    # TODO Deixar escolher um desses
+    # TODO Mostrar as informações
+    
     pass
 
 if __name__ == '__main__':
