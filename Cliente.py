@@ -1,5 +1,6 @@
 import socket
 import sys
+import Livro
 
 def main():
     if len(sys.argv) != 3:
@@ -70,21 +71,21 @@ def menu():
 def requisicao(opcao, subOpcao):
     if opcao == 1:
         if subOpcao == 1:
-            cadastroLivro()
+            cadastro_livro()
         elif subOpcao == 2:
-            modificarLivro()
+            modificar_livro()
         else:
-            removerLivro()
+            remover_livro()
     else:
         if subOpcao == 1:
-            consultaTitulo()
+            consulta_titulo()
         elif subOpcao == 2:
-            consultaAutor()
+            consulta_autor()
         else:
-            consultaAnoEdicao()
+            consulta_ano_edicao()
 
             
-def cadastroLivro():
+def cadastro_livro():
     s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ip    = sys.argv[1] 
     porta = int(sys.argv[2])
@@ -98,7 +99,7 @@ def cadastroLivro():
     # TODO Enviar o livro novo pro servidor
     pass
 
-def modificarLivro():
+def modificar_livro():
     s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ip    = sys.argv[1] 
     porta = int(sys.argv[2])
@@ -110,7 +111,7 @@ def modificarLivro():
 
     pass
 
-def removerLivro():
+def remover_livro():
     s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ip    = sys.argv[1] 
     porta = int(sys.argv[2])
@@ -122,7 +123,7 @@ def removerLivro():
 
     pass
 
-def consultaTitulo():
+def consulta_titulo():
     s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ip    = sys.argv[1] 
     porta = int(sys.argv[2])
@@ -134,7 +135,7 @@ def consultaTitulo():
 
     pass
 
-def consultaAutor():
+def consulta_autor():
     s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ip    = sys.argv[1] 
     porta = int(sys.argv[2])
@@ -146,7 +147,7 @@ def consultaAutor():
     
     pass
 
-def consultaAnoEdicao():
+def consulta_ano_edicao():
     s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ip    = sys.argv[1] 
     porta = int(sys.argv[2])
