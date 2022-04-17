@@ -1,29 +1,36 @@
-import socket
-import sys
+import socket, pickle
+from typing import Tuple
+from Codigos import Cod
 import Livro
 
+s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+ip    = 'localhost' 
+porta = 12000
+
 def main():
-    if len(sys.argv) != 3:
-        print('%s <ip> <porta>' % sys.argv[0])
-        sys.exit(0)
 
     while True:
         
-        opcao, subOpcao = menu() 
+        opcao, sub_opcao = menu() 
         if opcao:
-            requisicao(opcao, subOpcao)
+            requisicao(opcao, sub_opcao)
         else:
             break
+        
+    fechar_servidor()
 
+def menu() -> Tuple[Cod, Cod]:
+    """Lê uma combinação de uma opção e um filtro, quando necessário."""
 
-def menu():
     opcao = 1
-    subOpcao = 0
+    sub_opcao = 0
 
     while opcao:
         print('_______________________________')
-        print('1. Cadastro de livros.')
-        print('2. Consultas.')
+        print('1. Cadastrar um livro.')
+        print('2. Alterar um livro.')
+        print('3. Deletar um livro.')
+        print('4. Fazer uma consulta.')
         print('0. Sair.')
 
         while True:
@@ -32,21 +39,14 @@ def menu():
                 opcao = int(opcao)
                 break
 
-        if opcao == 0:
-            return (0, 0)
-        elif opcao < 0 or opcao > 2:
+        if opcao == Cod.SAIR:
+            return (Cod.SAIR, Cod.SAIR)
+        elif opcao < 0 or opcao > 4:
             print('Opção inválida.')
             continue
             
         while True:
-            if opcao == 1:
-                print('_______________________________')
-                print('1. Cadastrar um novo livro.')
-                print('2. Alterar um livro.')
-                print('3. Remover um livro.')
-                print('0. Voltar.')
-
-            elif opcao == 2:
+            if opcao != Cod.CADASTRO:
                 print('_______________________________')
                 print('1. Consulta por título.')
                 print('2. Consulta por autor.')
@@ -54,111 +54,116 @@ def menu():
                 print('0. Voltar.')
 
             while True:
-                subOpcao = input('Escolha uma sub-opção: ')
-                if subOpcao and subOpcao.isalnum():
-                    subOpcao = int(subOpcao)
+                sub_opcao = input('Escolha a forma de consulta: ')
+                if sub_opcao and sub_opcao.isalnum():
+                    sub_opcao = int(sub_opcao)
                     break
 
-            if subOpcao == 0:
+            if sub_opcao == Cod.SAIR:
                 break
-            elif subOpcao < 0 or subOpcao > 3:
+            elif sub_opcao < 0 or sub_opcao > 3:
                 print('Sub-opção inválida.')
                 continue
             else:
-                return (opcao, subOpcao)
+                return (opcao, sub_opcao)
 
 
-def requisicao(opcao, subOpcao):
-    if opcao == 1:
-        if subOpcao == 1:
-            cadastro_livro()
-        elif subOpcao == 2:
-            modificar_livro()
-        else:
-            remover_livro()
-    else:
-        if subOpcao == 1:
-            consulta_titulo()
-        elif subOpcao == 2:
-            consulta_autor()
-        else:
-            consulta_ano_edicao()
+def requisicao(opcao: Cod, filtro: Cod):
+    """Chama a função apropriada dada a combinação recebida."""
+    if opcao == Cod.CADASTRO:
+        cadastro_livro()
+    elif opcao == Cod.ALTERAR:
+        modificar_livro(filtro)
+    elif opcao == Cod.DELETAR:
+        remover_livro(filtro)
+    elif opcao == Cod.CONSULTAR:
+        consulta_livro(filtro)
 
             
 def cadastro_livro():
-    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip    = sys.argv[1] 
-    porta = int(sys.argv[2])
-
     print('Insira as informações do livro:')
     titulo = input('Título: ')
     autor  = input('Autor: ')
-    edicao = input('Edição: ')
     ano    = input('Ano de publicação: ')
+    edicao = input('Edição: ')
 
-    # TODO Enviar o livro novo pro servidor
-    pass
+    msg = f'CREATE;TITULO={titulo};AUTOR={autor};ANO={ano};EDICAO={edicao};'
+    s.sendto(msg, (ip, porta))
+    retorno, _ = s.recvfrom(1024)
 
-def modificar_livro():
-    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip    = sys.argv[1] 
-    porta = int(sys.argv[2])
+    print(retorno)
 
-    titulo = input('Insira o título do livro a ser modificado: ')
-    # TODO Buscar todos os livros que contêm essas palavras
-    # TODO Deixar escolher um desses
-    # TODO Ler as novas informações
+def escolher_livro(filtro: Cod) -> Livro:
+    """
+        Lê os dados que vão ser usados pra procurar os livros no banco de dados.
+        Caso sejam encontrados vários livros que se encaixam nesse filtro, permite escolher
+        um desses livros e o retorna.
+    """
 
-    pass
+    if filtro == Cod.TITULO:
+        titulo = input('Pesquisar títulos: ')
+        msg = f'UPDATE;TITULO={titulo};'
+    elif filtro == Cod.AUTOR:
+        autor = input('Pesquisar autor: ')
+        msg = f'UPDATE;AUTOR={autor};'
+    elif filtro == Cod.ANO_EDI:
+        ano    = input('Pesquisar ano de publicação: ')
+        edicao = input('Edição: ')
+        msg = f'UPDATE;ANO={ano};EDICAO={edicao}'
 
-def remover_livro():
-    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip    = sys.argv[1] 
-    porta = int(sys.argv[2])
+    s.sendto(msg, (ip, porta))
+    retorno, servidor = s.recvfrom(2048)
 
-    titulo = input('Insira o título do livro a ser modificado: ')
-    # TODO Buscar todos os livros que contêm essas palavras
-    # TODO Deixar escolher um desses
-    # TODO Enviar a requisição de delete pro servidor
+    livro = Livro(retorno) # TODO
 
-    pass
+    return livro
 
-def consulta_titulo():
-    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip    = sys.argv[1] 
-    porta = int(sys.argv[2])
-
-    titulo = input('Insira o título a buscar: ')
-    # TODO Buscar todos os livros que contêm essas palavras
-    # TODO Deixar escolher um desses
-    # TODO Mostrar as informações
-
-    pass
-
-def consulta_autor():
-    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip    = sys.argv[1] 
-    porta = int(sys.argv[2])
-
-    autor = input('Insira o autor a buscar: ')
-    # TODO Buscar todos os livros desse autor
-    # TODO Deixar escolher um desses
-    # TODO Mostrar as informações
+def modificar_livro(filtro):
+    livro = escolher_livro(filtro)
     
-    pass
+    titulo = livro.titulo
+    autor  = livro.autor
+    ano    = livro.ano
+    edicao = livro.edicao
 
-def consulta_ano_edicao():
-    s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip    = sys.argv[1] 
-    porta = int(sys.argv[2])
-
-    ano    = input('Insira o ano a buscar: ')
-    edicao = input('Insira a edição: ')
-    # TODO Buscar todos os livros desse autor
-    # TODO Deixar escolher um desses
-    # TODO Mostrar as informações
+    print(f'Título...........: {titulo}')
+    print(f'Autor............: {autor}')
+    print(f'Ano de Publicação: {ano}')
+    print(f'Edição...........: {edicao}')
     
-    pass
+    titulo = input('Insira o novo título...........: ')
+    autor  = input('Insira o novo autor............: ')
+    ano    = input('Insira o novo ano de publicação: ')
+    edicao = input('Insira a nova edição...........: ')
+
+    msg = f'UPDATE;CODIGO={livro.codigo};TITULO={titulo};AUTOR={autor};ANO={ano};EDICAO={edicao};'
+    s.sendto(msg, (ip, porta))
+    retorno, _ = s.recvfrom(1024)
+
+    print(retorno)
+    
+def remover_livro(filtro):
+    livro = escolher_livro(filtro)
+
+    msg = f'DELETE;CODIGO={livro.codigo}'
+    s.sendto(msg, (ip, porta))
+    retorno, _ = s.recvfrom(1024)
+
+    print(retorno)
+
+def consulta_livro(filtro):
+    livro = escolher_livro(filtro)
+
+    print(livro)
+
+
+def fechar_servidor():
+    msg = "EXIT;"
+    s.sendto(msg, (ip, porta))
+    retorno, _ = s.recvfrom(1024)
+    s.close()
+
+    print(retorno)
 
 if __name__ == '__main__':
     main()
