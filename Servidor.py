@@ -1,9 +1,19 @@
-import pickle
-import socket
-import sys
+import pickle, socket, psycopg2
+from typing import List
+
 import Livro
+from Codigos import Cod
 
 def main():
+
+    postgresql = psycopg2.connect(
+        host     = 'localhost',
+        database = 'livros',
+        user     = 'postgres',
+        password = 'postgres'
+    )
+
+    db = postgresql.cursor()
 
     ip    = 'localhost'
     porta = 12000
@@ -14,32 +24,38 @@ def main():
 
     while True:
         msg, cliente = s.recvfrom(1024)
-        opcao = opcao_mensagem(msg)
+        opcao, *dados = msg.split(';')
+        opcao = valida_opcao(opcao)
         if opcao:
-            retorno = trata_mensagem(msg)
+            retorno = trata_mensagem(opcao, dados)
         else:
             break
         s.sendto(retorno.encode(), cliente)
     
     s.close()
+    db.close()
+
+    if postgresql is not None:
+        postgresql.close()
 
 
-def opcao_mensagem(msg):
-    if 'CREATE' in msg:
-        return 1
-    elif 'READ' in msg:
-        return 2
-    elif 'UPDATE' in msg:
-        return 3
-    elif 'DELETE' in msg:
-        return 4
-    elif 'EXIT' in msg:
-        return 5
+def valida_opcao(opcao: str) -> int:
+    if opcao == 'CREATE':
+        return Cod.CADASTRO
+    elif opcao == 'READ':
+        return Cod.CONSULTAR
+    elif opcao == 'UPDATE':
+        return Cod.ALTERAR
+    elif opcao == 'DELETE':
+        return Cod.DELETAR
+    elif opcao == 'EXIT':
+        return Cod.SAIR
     else:
-        return 0
+        return -1
 
 
-def trata_mensagem(msg):
-    
+def trata_mensagem(opcao: int, dados: List[str]) -> str:
+    pass
+
 if __name__ == '__main__':
     main()
