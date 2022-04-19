@@ -54,8 +54,27 @@ def valida_opcao(opcao: str) -> int:
 
 
 def trata_mensagem(opcao: int, dados: List[str]) -> str:
-    if opcao == Cod.SAIR:
+    if opcao == Cod.CADASTRO:
+        # TODO Separar os dados e criar um Livro
+        # TODO Cadastrar o livro
+        # TODO Retornar se deu pra cadastrar ou não
+        pass
+    elif opcao == Cod.CONSULTAR:
+        # TODO Consultar os livros que se encaixam no filtro
+        # TODO Retornar a lista de livros
+        pass
+    elif opcao == Cod.ALTERAR:
+        # TODO Consultar os livros que se encaixam no filtro
+        # TODO Retornar a lista de livros
+        pass 
+    elif opcao == Cod.DELETAR:
+        # TODO Consultar os livros que se encaixam no filtro
+        # TODO Retornar a lista de livros
+        pass 
+    elif opcao == Cod.SAIR:
         return 'Servidor fechado automaticamente.'
+    else:
+        return 'Opção inválida.'
 
 if __name__ == '__main__':
     main()
