@@ -6,14 +6,14 @@ from Codigos import Cod
 
 def main():
 
-    postgresql = psycopg2.connect(
+    banco_livros = psycopg2.connect(
         host     = 'localhost',
         database = 'livros',
         user     = 'postgres',
         password = 'postgres'
     )
 
-    db = postgresql.cursor()
+    db = banco_livros.cursor()
 
     ip    = 'localhost'
     porta = 12000
@@ -24,19 +24,18 @@ def main():
 
     while True:
         msg, cliente = s.recvfrom(1024)
-        opcao, *dados = msg.split(';')
+        opcao, *dados = msg.decode().split(';')
         opcao = valida_opcao(opcao)
-        if opcao:
-            retorno = trata_mensagem(opcao, dados)
-        else:
-            break
+
+        retorno = trata_mensagem(opcao, dados)
         s.sendto(retorno.encode(), cliente)
+        break
     
     s.close()
     db.close()
 
-    if postgresql is not None:
-        postgresql.close()
+    if banco_livros is not None:
+        banco_livros.close()
 
 
 def valida_opcao(opcao: str) -> int:
@@ -55,7 +54,8 @@ def valida_opcao(opcao: str) -> int:
 
 
 def trata_mensagem(opcao: int, dados: List[str]) -> str:
-    pass
+    if opcao == Cod.SAIR:
+        return 'Servidor fechado automaticamente.'
 
 if __name__ == '__main__':
     main()

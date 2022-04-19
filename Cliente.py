@@ -11,9 +11,9 @@ def main():
 
     while True:
         
-        opcao, sub_opcao = menu() 
+        opcao, filtro = menu() 
         if opcao:
-            requisicao(opcao, sub_opcao)
+            requisicao(opcao, filtro)
         else:
             break
         
@@ -23,7 +23,7 @@ def menu() -> Tuple[Cod, Cod]:
     """Lê uma combinação de uma opção e um filtro, quando necessário."""
 
     opcao = 1
-    sub_opcao = 0
+    filtro = 0
 
     while opcao:
         print('_______________________________')
@@ -35,7 +35,7 @@ def menu() -> Tuple[Cod, Cod]:
 
         while True:
             opcao = input('Escolha uma opção: ')
-            if opcao and opcao.isalnum():
+            if opcao.isnumeric():
                 opcao = int(opcao)
                 break
 
@@ -54,18 +54,18 @@ def menu() -> Tuple[Cod, Cod]:
                 print('0. Voltar.')
 
             while True:
-                sub_opcao = input('Escolha a forma de consulta: ')
-                if sub_opcao and sub_opcao.isalnum():
-                    sub_opcao = int(sub_opcao)
+                filtro = input('Escolha uma opção: ')
+                if filtro.isalnum():
+                    filtro = int(filtro)
                     break
 
-            if sub_opcao == Cod.SAIR:
+            if filtro == Cod.SAIR:
                 break
-            elif sub_opcao < 0 or sub_opcao > 3:
+            elif filtro < 0 or filtro > 3:
                 print('Sub-opção inválida.')
                 continue
             else:
-                return (opcao, sub_opcao)
+                return (opcao, filtro)
 
 
 def requisicao(opcao: Cod, filtro: Cod):
@@ -91,7 +91,7 @@ def cadastro_livro():
     s.sendto(msg, (ip, porta))
     retorno, _ = s.recvfrom(1024)
 
-    print(retorno)
+    print(retorno.decode())
 
 def escolher_livro(filtro: Cod) -> Livro:
     """
@@ -140,7 +140,7 @@ def modificar_livro(filtro):
     s.sendto(msg, (ip, porta))
     retorno, _ = s.recvfrom(1024)
 
-    print(retorno)
+    print(retorno.decode())
     
 def remover_livro(filtro):
     livro = escolher_livro(filtro)
@@ -149,7 +149,7 @@ def remover_livro(filtro):
     s.sendto(msg, (ip, porta))
     retorno, _ = s.recvfrom(1024)
 
-    print(retorno)
+    print(retorno.decode())
 
 def consulta_livro(filtro):
     livro = escolher_livro(filtro)
@@ -159,11 +159,11 @@ def consulta_livro(filtro):
 
 def fechar_servidor():
     msg = "EXIT;"
-    s.sendto(msg, (ip, porta))
+    s.sendto(msg.encode(), (ip, porta))
     retorno, _ = s.recvfrom(1024)
     s.close()
 
-    print(retorno)
+    print(retorno.decode())
 
 if __name__ == '__main__':
     main()
