@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import IntEnum
 
-class Cod(Enum):
+class Cod(IntEnum):
     CADASTRO  = 1
     ALTERAR   = 2
     DELETAR   = 3
