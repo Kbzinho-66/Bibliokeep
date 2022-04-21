@@ -1,7 +1,7 @@
 import pickle, socket, psycopg2
 from typing import List
 
-import Livro
+from Classes import Query, Livro
 from Codigos import Cod
 
 def main():
@@ -24,12 +24,14 @@ def main():
 
     while True:
         msg, cliente = s.recvfrom(1024)
-        opcao, *dados = msg.decode().split(';')
-        opcao = valida_opcao(opcao)
+        q: Query = pickle.loads(msg)
+        opcao = q.query
+        livros = [q.livros] # REVIEW Ainda não sei o que acontece se receber uma lista mesmo
 
-        retorno = trata_mensagem(opcao, dados)
+        retorno = trata_mensagem(opcao, livros)
         s.sendto(retorno.encode(), cliente)
-        break
+        if opcao == Cod.SAIR:
+            break
     
     s.close()
     db.close()
@@ -38,27 +40,12 @@ def main():
         banco_livros.close()
 
 
-def valida_opcao(opcao: str) -> int:
-    if opcao == 'CREATE':
-        return Cod.CADASTRO
-    elif opcao == 'READ':
-        return Cod.CONSULTAR
-    elif opcao == 'UPDATE':
-        return Cod.ALTERAR
-    elif opcao == 'DELETE':
-        return Cod.DELETAR
-    elif opcao == 'EXIT':
-        return Cod.SAIR
-    else:
-        return -1
-
-
-def trata_mensagem(opcao: int, dados: List[str]) -> str:
+def trata_mensagem(opcao: Cod, livros: List[Livro]) -> str:
     if opcao == Cod.CADASTRO:
-        # TODO Separar os dados e criar um Livro
+        livro = livros[0]
         # TODO Cadastrar o livro
         # TODO Retornar se deu pra cadastrar ou não
-        pass
+        return 'Livro inserido com sucesso.'
     elif opcao == Cod.CONSULTAR:
         # TODO Consultar os livros que se encaixam no filtro
         # TODO Retornar a lista de livros

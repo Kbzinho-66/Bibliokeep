@@ -1,7 +1,7 @@
 import socket, pickle
 from typing import Tuple
-from Codigos import Cod
-import Livro
+from Codigos import Opcao, Filtro
+from Classes import Livro, Query
 
 s     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 ip    = 'localhost' 
@@ -19,7 +19,8 @@ def main():
         
     fechar_servidor()
 
-def menu() -> Tuple[Cod, Cod]:
+
+def menu() -> Tuple[Opcao, Filtro]:
     """Lê uma combinação de uma opção e um filtro, quando necessário."""
 
     opcao = 1
@@ -39,77 +40,82 @@ def menu() -> Tuple[Cod, Cod]:
                 opcao = int(opcao)
                 break
 
-        if opcao == Cod.SAIR:
-            return (Cod.SAIR, Cod.SAIR)
+        if opcao == Opcao.SAIR:
+            return (Opcao.SAIR, Opcao.SAIR)
         elif opcao < 0 or opcao > 4:
             print('Opção inválida.')
             continue
             
-        while True:
-            if opcao != Cod.CADASTRO:
+        if opcao != Opcao.CADASTRO:
+            while True:
                 print('_______________________________')
                 print('1. Consulta por título.')
                 print('2. Consulta por autor.')
                 print('3. Consulta por ano e edição.')
                 print('0. Voltar.')
 
-            while True:
-                filtro = input('Escolha uma opção: ')
-                if filtro.isalnum():
-                    filtro = int(filtro)
+                while True:
+                    filtro = input('Escolha uma opção: ')
+                    if filtro.isalnum():
+                        filtro = int(filtro)
+                        break
+
+                if filtro == Opcao.SAIR:
+                    break
+                elif filtro < 0 or filtro > 3:
+                    print('Sub-opção inválida.')
+                    continue
+                else:
                     break
 
-            if filtro == Cod.SAIR:
-                break
-            elif filtro < 0 or filtro > 3:
-                print('Sub-opção inválida.')
-                continue
-            else:
-                return (opcao, filtro)
+        return (opcao, filtro)
 
 
-def requisicao(opcao: Cod, filtro: Cod):
+def requisicao(opcao: Opcao, filtro: Filtro):
     """Chama a função apropriada dada a combinação recebida."""
-    if opcao == Cod.CADASTRO:
+    if opcao == Opcao.CADASTRO:
         cadastro_livro()
-    elif opcao == Cod.ALTERAR:
+    elif opcao == Opcao.ALTERAR:
         modificar_livro(filtro)
-    elif opcao == Cod.DELETAR:
+    elif opcao == Opcao.DELETAR:
         remover_livro(filtro)
-    elif opcao == Cod.CONSULTAR:
+    elif opcao == Opcao.CONSULTAR:
         consulta_livro(filtro)
 
             
 def cadastro_livro():
-    print('Insira as informações do livro:')
+    print('Insira as informações do livro.')
     titulo = input('Título: ')
     autor  = input('Autor: ')
     ano    = input('Ano de publicação: ')
     edicao = input('Edição: ')
 
-    msg = f'CREATE;TITULO={titulo};AUTOR={autor};ANO={ano};EDICAO={edicao};'
+    livro = Livro(titulo, autor, edicao, ano)
+    query = Query(Opcao.CADASTRO, livro)
+
+    msg = pickle.dumps(query)
     s.sendto(msg, (ip, porta))
     retorno, _ = s.recvfrom(1024)
 
     print(retorno.decode())
 
-def escolher_livro(filtro: Cod) -> Livro:
+def escolher_livro(filtro: Filtro) -> Livro:
     """
         Lê os dados que vão ser usados pra procurar os livros no banco de dados.
         Caso sejam encontrados vários livros que se encaixam nesse filtro, permite escolher
         um desses livros e o retorna.
     """
 
-    if filtro == Cod.TITULO:
+    if filtro == Filtro.TITULO:
         titulo = input('Pesquisar títulos: ')
-        msg = f'UPDATE;TITULO={titulo};'
-    elif filtro == Cod.AUTOR:
+        msg = f'UPDATE;{titulo};'
+    elif filtro == Filtro.AUTOR:
         autor = input('Pesquisar autor: ')
-        msg = f'UPDATE;AUTOR={autor};'
-    elif filtro == Cod.ANO_EDI:
+        msg = f'UPDATE;{autor};'
+    elif filtro == Filtro.ANO_EDI:
         ano    = input('Pesquisar ano de publicação: ')
         edicao = input('Edição: ')
-        msg = f'UPDATE;ANO={ano};EDICAO={edicao}'
+        msg = f'UPDATE;{ano};{edicao}'
 
     s.sendto(msg, (ip, porta))
     retorno, servidor = s.recvfrom(2048)
@@ -136,7 +142,7 @@ def modificar_livro(filtro):
     ano    = input('Insira o novo ano de publicação: ')
     edicao = input('Insira a nova edição...........: ')
 
-    msg = f'UPDATE;CODIGO={livro.codigo};TITULO={titulo};AUTOR={autor};ANO={ano};EDICAO={edicao};'
+    msg = f'UPDATE;{livro.codigo};{titulo};{autor};{ano};{edicao}'
     s.sendto(msg, (ip, porta))
     retorno, _ = s.recvfrom(1024)
 
@@ -145,7 +151,7 @@ def modificar_livro(filtro):
 def remover_livro(filtro):
     livro = escolher_livro(filtro)
 
-    msg = f'DELETE;CODIGO={livro.codigo}'
+    msg = f'DELETE;{livro.codigo}'
     s.sendto(msg, (ip, porta))
     retorno, _ = s.recvfrom(1024)
 
@@ -158,8 +164,9 @@ def consulta_livro(filtro):
 
 
 def fechar_servidor():
-    msg = "EXIT;"
-    s.sendto(msg.encode(), (ip, porta))
+    q = Query(Opcao.SAIR, [])
+    msg = pickle.dumps(q)
+    s.sendto(msg, (ip, porta))
     retorno, _ = s.recvfrom(1024)
     s.close()
 
