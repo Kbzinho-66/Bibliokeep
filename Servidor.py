@@ -40,13 +40,43 @@ def trata_mensagem(opcao: Cod, livros: List[Livro]) -> str:
 
     if opcao == Cod.CADASTRO:
         livro = livros[0]
-        db.execute('SELECT max(codigo) from livrostemp')        
-        codigo = db.fetchone()
-        # TODO Tem que inserir o nome do livro na tabela livros, o autor na autor, ...
+        db.execute('SELECT max(codigo) from livros;')        
+        cod_livro = db.fetchone()
+        db.execute('SELECT max(codigo) from autor;')
+        cod_autor = db.fetchone()
+
+        db.execute(
+            ''' INSERT INTO autor (codigo, nome) VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+                RETURNING codigo;
+            ''', (cod_autor, livro.autor)
+        )
+        cod_autor = db.fetchone()
+
+        db.execute(
+            ''' INSERT INTO livros (codigo, titulo) VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+                return codigo;
+            ''', (cod_livro, livro.nome)
+        )
+        cod_livro = db.fetchone()
+
+        db.execute(
+            ''' INSERT INTO edicao (codigolivro, numero, ano) VALUES (%s, %s, %s)
+                ON CONFLICT DO NOTHING;
+            ''', (cod_livro, livro.edicao, livro.ano_pub)
+        )
+
+        db.execute(
+            ''' INSERT INTO livroautor (codigolivro, codigoautor) VALUES (%s, %s)
+                ON CONFLICT DO NOTHING;
+            ''', (cod_livro, cod_autor)
+        )
+
         db.execute(
             ''' INSERT INTO livrostemp (codigo, titulo, autor, edicao, ano)
             VALUES (%s, %s, %s, %s, %s); ''', 
-            (codigo, livro.nome, livro.autor, livro.edicao, livro.ano_pub)
+            (cod_livro, livro.nome, livro.autor, livro.edicao, livro.ano_pub)
         )
         banco_livros.commit()
         msg = 'Livro inserido com sucesso.'
