@@ -1,65 +1,66 @@
-import pickle, socket, psycopg2
+import pickle
+import psycopg2
+import socket
 from typing import List
 
 from Classes import Query, Livro
-from Codigos import Cod
+from Codigos import Opcao, Filtro
+
 
 def main():
-
-    ip    = 'localhost'
+    ip = 'localhost'
     porta = 12000
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    
-    s.bind( (ip, porta) )
+
+    s.bind((ip, porta))
 
     while True:
         msg, cliente = s.recvfrom(1024)
         q: Query = pickle.loads(msg)
         opcao = q.query
-        livros = [q.livros] # REVIEW Ainda não sei o que acontece se receber uma lista mesmo
+        livros = [q.livros]  # REVIEW Ainda não sei o que acontece se receber uma lista mesmo
+        filtro = q.filtro
 
-        retorno = trata_mensagem(opcao, livros)
-        s.sendto(retorno.encode(), cliente)
-        if opcao == Cod.SAIR:
+        retorno = trata_mensagem(opcao, livros, filtro)
+        s.sendto(retorno, cliente)
+        if opcao == Opcao.SAIR:
             break
-    
+
     s.close()
 
 
-def trata_mensagem(opcao: Cod, livros: List[Livro]) -> str:
-
+def trata_mensagem(opcao: Opcao, livros: List[Livro], filtro: Filtro) -> bytes:
     banco_livros = psycopg2.connect(
-        host     = 'localhost',
-        database = 'livros',
-        user     = 'postgres',
-        password = 'postgres'
+        host='localhost',
+        database='livros',
+        user='postgres',
+        password='postgres'
     )
 
     db = banco_livros.cursor()
+    livro = livros[0]
+    print(livro)
 
-    if opcao == Cod.CADASTRO:
-        livro = livros[0]
-        db.execute('SELECT max(codigo) from livros;')        
-        cod_livro = db.fetchone()
+    if opcao == Opcao.CADASTRO:
+
         db.execute('SELECT max(codigo) from autor;')
-        cod_autor = db.fetchone()
-
+        cod_autor, *_ = db.fetchone()
+        cod_autor += 1
         db.execute(
             ''' INSERT INTO autor (codigo, nome) VALUES (%s, %s)
-                ON CONFLICT DO NOTHING
-                RETURNING codigo;
+                ON CONFLICT DO NOTHING;
             ''', (cod_autor, livro.autor)
         )
-        cod_autor = db.fetchone()
 
+        db.execute('SELECT max(codigo) from livros;')
+        cod_livro, *_ = db.fetchone()
+        cod_livro += 1
         db.execute(
             ''' INSERT INTO livros (codigo, titulo) VALUES (%s, %s)
-                ON CONFLICT DO NOTHING
-                return codigo;
-            ''', (cod_livro, livro.nome)
+                ON CONFLICT DO NOTHING;
+            ''', (cod_livro, livro.titulo)
         )
-        cod_livro = db.fetchone()
 
         db.execute(
             ''' INSERT INTO edicao (codigolivro, numero, ano) VALUES (%s, %s, %s)
@@ -73,29 +74,45 @@ def trata_mensagem(opcao: Cod, livros: List[Livro]) -> str:
             ''', (cod_livro, cod_autor)
         )
 
+        db.execute('SELECT max(codigo) from livrostemp;')
+        cod_livro, *_ = db.fetchone()
+        cod_livro += 1
         db.execute(
             ''' INSERT INTO livrostemp (codigo, titulo, autor, edicao, ano)
-            VALUES (%s, %s, %s, %s, %s); ''', 
-            (cod_livro, livro.nome, livro.autor, livro.edicao, livro.ano_pub)
+            VALUES (%s, %s, %s, %s, %s); ''',
+            (cod_livro, livro.titulo, livro.autor, livro.edicao, livro.ano_pub)
         )
         banco_livros.commit()
-        msg = 'Livro inserido com sucesso.'
-    elif opcao == Cod.CONSULTAR:
-        # TODO Consultar os livros que se encaixam no filtro
-        # TODO Retornar a lista de livros
-        pass
-    elif opcao == Cod.ALTERAR:
-        # TODO Consultar os livros que se encaixam no filtro
-        # TODO Retornar a lista de livros
-        pass 
-    elif opcao == Cod.DELETAR:
-        # TODO Consultar os livros que se encaixam no filtro
-        # TODO Retornar a lista de livros
-        pass 
-    elif opcao == Cod.SAIR:
-        msg = 'Servidor fechado automaticamente.'
+
+        print('Livro inserido:')
+        print(livro)
+        msg = 'Livro inserido com sucesso.'.encode()
+
+    elif filtro:
+        if filtro == Filtro.TITULO:
+            db.execute(
+                ''' SELECT * FROM livrostemp WHERE titulo ILIKE %s
+                ''', (livro.titulo, )
+            )
+        elif filtro == Filtro.AUTOR:
+            db.execute(
+                ''' SELECT * FROM livrostemp WHERE autor ILIKE '%s'
+                ''', (livro.autor, )
+            )
+        elif filtro == Filtro.ANO_EDI:
+            db.execute(
+                ''' SELECT * FROM livrostemp where ano = %s and edicao = %s
+                ''', (livro.ano_pub, livro.edicao)
+            )
+
+        resultado = db.fetchall()
+        print(resultado)
+        msg = pickle.dumps(resultado)
+
+    elif opcao == Opcao.SAIR:
+        msg = 'Servidor fechado automaticamente.'.encode()
     else:
-        msg = 'Opção inválida.'
+        msg = 'Opção inválida.'.encode()
 
     db.close()
 
