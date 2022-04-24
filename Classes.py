@@ -1,17 +1,19 @@
 class Livro:
-    
-    def __init__(self, nome, autor, edicao, ano_pub):
-        codigo       = 0
-        self.nome    = nome
-        self.autor   = autor
-        self.edicao  = edicao
+
+    def __init__(self, codigo, titulo, autor, edicao, ano_pub):
+        self.codigo = codigo
+        self.titulo = titulo
+        self.autor = autor
+        self.edicao = edicao
         self.ano_pub = ano_pub
-        
+
     def __str__(self):
-        return f'{self.autor} - {self.nome}({self.ano_pub}, {self.edicao}ª edição)'
+        return f'{self.autor} - {self.titulo}({self.ano_pub}, {self.edicao}ª edição)'
+
 
 class Query:
-    
-    def __init__(self, query, livros):
+
+    def __init__(self, query, livros, filtro=''):
         self.query = query
         self.livros = livros
+        self.filtro = filtro
