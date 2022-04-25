@@ -1,6 +1,6 @@
 import pickle
 import socket
-from typing import Tuple
+from typing import Tuple, List
 
 from Classes import Livro, Query
 from Codigos import Opcao, Filtro
@@ -12,7 +12,6 @@ porta = 12000
 
 def main():
     while True:
-
         opcao, filtro = menu()
         if opcao:
             requisicao(opcao, filtro)
@@ -77,15 +76,22 @@ def requisicao(opcao: Opcao, filtro: Filtro):
     """Chama a função apropriada dada a combinação recebida."""
     if opcao == Opcao.CADASTRO:
         cadastro_livro()
+
     elif opcao == Opcao.ALTERAR:
-        escolher_livro(opcao, filtro)
+        livros = consultar_livros(opcao, filtro)
+        escolher_livro(livros)
         modificar_livro(filtro)
+
     elif opcao == Opcao.DELETAR:
-        escolher_livro(opcao, filtro)
+        livros = consultar_livros(opcao, filtro)
+        escolher_livro(livros)
         remover_livro(filtro)
+
     elif opcao == Opcao.CONSULTAR:
-        escolher_livro(opcao, filtro)
-        consulta_livro(filtro)
+        livros = consultar_livros(opcao, filtro)
+        print('Livros encontrados:')
+        for livro in livros:
+            print(livro)
 
 
 def cadastro_livro():
@@ -105,15 +111,12 @@ def cadastro_livro():
     print(retorno.decode())
 
 
-def escolher_livro(opcao: Opcao, filtro: Filtro) -> Livro:
+def consultar_livros(opcao: Opcao, filtro: Filtro) -> List[Livro]:
 
     """
-        Lê os dados que vão ser usados para procurar os livros no banco de dados.
-        Caso sejam encontrados vários livros que se encaixam nesse filtro, permite escolher
-        um desses livros e o retorna.
+    Vai ler o filtro escolhido, procurar todos os livros que se encaixam
+    e retornar uma lista com os primeiros 20 resultados.
     """
-    msg = ''
-
     if filtro == Filtro.TITULO:
         titulo = input('Pesquisar títulos: ')
         livro = Livro(titulo=titulo)
@@ -130,14 +133,12 @@ def escolher_livro(opcao: Opcao, filtro: Filtro) -> Livro:
     s.sendto(msg, (ip, porta))
     retorno, servidor = s.recvfrom(4096)
     livros = pickle.loads(retorno)
-    for item in livros:
-        print(item)
 
-    return livro
+    return livros
 
 
 def modificar_livro(filtro):
-    livro = escolher_livro(filtro)
+    livro = consultar_livros(filtro)
 
     titulo = livro.titulo
     autor = livro.autor
@@ -171,7 +172,9 @@ def remover_livro(filtro):
     pass
 
 
-def consulta_livro(filtro):
+def escolher_livro(livros: List[Livro]) -> Livro:
+    # TODO Imprimir todos os livros, usando o código deles como índice.
+    # TODO Ler esse código e pegar o livro certo
     pass
 
 

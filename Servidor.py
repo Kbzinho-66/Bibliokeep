@@ -19,7 +19,7 @@ def main():
         msg, cliente = s.recvfrom(1024)
         q: Query = pickle.loads(msg)
         opcao = q.query
-        livros = [q.livros]  # REVIEW Ainda não sei o que acontece se receber uma lista mesmo
+        livros = [q.livro]  # REVIEW Ainda não sei o que acontece se receber uma lista mesmo
         filtro = q.filtro
 
         retorno = trata_mensagem(opcao, livros, filtro)

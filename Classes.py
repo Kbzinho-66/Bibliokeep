@@ -13,7 +13,7 @@ class Livro:
 
 class Query:
 
-    def __init__(self, query, livros, filtro=''):
+    def __init__(self, query, livro, filtro=''):
         self.query = query
-        self.livros = livros
+        self.livro = livro
         self.filtro = filtro
