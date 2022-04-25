@@ -40,7 +40,6 @@ def trata_mensagem(opcao: Opcao, livros: List[Livro], filtro: Filtro) -> bytes:
 
     db = banco_livros.cursor()
     livro = livros[0]
-    print(livro)
 
     if opcao == Opcao.CADASTRO:
 
@@ -89,25 +88,32 @@ def trata_mensagem(opcao: Opcao, livros: List[Livro], filtro: Filtro) -> bytes:
         msg = 'Livro inserido com sucesso.'.encode()
 
     elif filtro:
+        print('Consulta:')
         if filtro == Filtro.TITULO:
+            print(f'Título = {livro.titulo}')
             db.execute(
-                ''' SELECT * FROM livrostemp WHERE titulo ILIKE %s
+                ''' SELECT * FROM livrostemp WHERE titulo ~ %s
                 ''', (livro.titulo, )
             )
         elif filtro == Filtro.AUTOR:
+            print(f'Autor = {livro.autor}')
             db.execute(
-                ''' SELECT * FROM livrostemp WHERE autor ILIKE '%s'
+                ''' SELECT * FROM livrostemp WHERE autor ~ %s
                 ''', (livro.autor, )
             )
         elif filtro == Filtro.ANO_EDI:
+            print(f'Ano = {livro.ano_pub} e Edição = {livro.edicao}')
             db.execute(
                 ''' SELECT * FROM livrostemp where ano = %s and edicao = %s
                 ''', (livro.ano_pub, livro.edicao)
             )
 
-        resultado = db.fetchall()
-        print(resultado)
-        msg = pickle.dumps(resultado)
+        resultado = db.fetchmany(20)
+        livros = []
+        for item in resultado:
+            codigo, titulo, autor, edicao, ano = item
+            livros.append(Livro(codigo, titulo, autor, edicao, ano))
+        msg = pickle.dumps(livros)
 
     elif opcao == Opcao.SAIR:
         msg = 'Servidor fechado automaticamente.'.encode()

@@ -116,25 +116,22 @@ def escolher_livro(opcao: Opcao, filtro: Filtro) -> Livro:
 
     if filtro == Filtro.TITULO:
         titulo = input('Pesquisar títulos: ')
-        livro = Livro(0, titulo, '', 0, 0)
-        query = Query(opcao, livro, filtro)
-        msg = pickle.dumps(query)
-        s.sendto(msg, (ip, porta))
-        retorno, servidor = s.recvfrom(1024)
-        livros = pickle.loads(retorno)
-        print(livros)
+        livro = Livro(titulo=titulo)
     elif filtro == Filtro.AUTOR:
         autor = input('Pesquisar autor: ')
-        msg = f'UPDATE;{autor};'
+        livro = Livro(autor=autor)
     elif filtro == Filtro.ANO_EDI:
         ano = input('Pesquisar ano de publicação: ')
         edicao = input('Edição: ')
-        msg = f'UPDATE;{ano};{edicao}'
+        livro = Livro(ano_pub=ano, edicao=edicao)
 
-    s.sendto(msg.encode(), (ip, porta))
-    retorno, servidor = s.recvfrom(2048)
-
-    livro = Livro(retorno)  # TODO
+    query = Query(opcao, livro, filtro)
+    msg = pickle.dumps(query)
+    s.sendto(msg, (ip, porta))
+    retorno, servidor = s.recvfrom(4096)
+    livros = pickle.loads(retorno)
+    for item in livros:
+        print(item)
 
     return livro
 
