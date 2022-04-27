@@ -8,7 +8,7 @@ class Livro:
         self.ano_pub = ano_pub
 
     def __str__(self):
-        return f'{self.autor} - {self.titulo}({self.ano_pub}, {self.edicao}ª edição)'
+        return f'{self.autor.strip()} - {self.titulo}({self.ano_pub}, {self.edicao}ª edição)'
 
 
 class Query:

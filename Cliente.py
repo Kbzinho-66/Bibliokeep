@@ -79,8 +79,8 @@ def requisicao(opcao: Opcao, filtro: Filtro):
 
     elif opcao == Opcao.ALTERAR:
         livros = consultar_livros(opcao, filtro)
-        escolher_livro(livros)
-        modificar_livro(filtro)
+        livro = escolher_livro(livros)
+        # modificar_livro(filtro)
 
     elif opcao == Opcao.DELETAR:
         livros = consultar_livros(opcao, filtro)
@@ -173,9 +173,20 @@ def remover_livro(filtro):
 
 
 def escolher_livro(livros: List[Livro]) -> Livro:
-    # TODO Imprimir todos os livros, usando o código deles como índice.
-    # TODO Ler esse código e pegar o livro certo
-    pass
+    indices = {}
+    for pos, livro in enumerate(livros):
+        indices[livro.codigo] = pos
+        print(f'{livro.codigo}: {livro.__str__()}')
+    while True:
+        cod = input('Insira o código do livro que quer selecionar: ')
+        if cod.isnumeric():
+            cod = int(cod)
+            if cod in indices:
+                break
+            else:
+                print('Código inválido.')
+
+    return livros[indices[cod]]
 
 
 def fechar_servidor():
