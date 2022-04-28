@@ -29,11 +29,11 @@ def menu() -> Tuple[Opcao, Filtro]:
 
     while opcao:
         print('_______________________________')
-        print('1. Cadastrar um livro.')
-        print('2. Alterar um livro.')
-        print('3. Deletar um livro.')
-        print('4. Fazer uma consulta.')
-        print('0. Sair.')
+        print(f'{Opcao.CADASTRO}. Cadastrar um livro.')
+        print(f'{Opcao.ALTERAR}. Alterar um livro.')
+        print(f'{Opcao.DELETAR}. Deletar um livro.')
+        print(f'{Opcao.CONSULTAR}. Fazer uma consulta.')
+        print(f'{Opcao.SAIR}. Sair.')
 
         while True:
             opcao = input('Escolha uma opção: ')
@@ -50,10 +50,10 @@ def menu() -> Tuple[Opcao, Filtro]:
         if opcao != Opcao.CADASTRO:
             while True:
                 print('_______________________________')
-                print('1. Consulta por título.')
-                print('2. Consulta por autor.')
-                print('3. Consulta por ano e edição.')
-                print('0. Voltar.')
+                print(f'{Filtro.TITULO}. Consulta por título.')
+                print(f'{Filtro.AUTOR}. Consulta por autor.')
+                print(f'{Filtro.ANO_EDI}. Consulta por ano e edição.')
+                print(f'{Filtro.SAIR}. Voltar.')
 
                 while True:
                     filtro = input('Escolha uma opção: ')
@@ -78,14 +78,12 @@ def requisicao(opcao: Opcao, filtro: Filtro):
         cadastro_livro()
 
     elif opcao == Opcao.ALTERAR:
-        livros = consultar_livros(opcao, filtro)
-        livro = escolher_livro(livros)
-        # modificar_livro(filtro)
+        livros = consultar_livros(Opcao.FILTRO, filtro)
+        modificar_livro(escolher_livro(livros))
 
     elif opcao == Opcao.DELETAR:
-        livros = consultar_livros(opcao, filtro)
-        escolher_livro(livros)
-        remover_livro(filtro)
+        livros = consultar_livros(Opcao.FILTRO, filtro)
+        remover_livro(escolher_livro(livros))
 
     elif opcao == Opcao.CONSULTAR:
         livros = consultar_livros(opcao, filtro)
@@ -137,8 +135,7 @@ def consultar_livros(opcao: Opcao, filtro: Filtro) -> List[Livro]:
     return livros
 
 
-def modificar_livro(filtro):
-    livro = consultar_livros(filtro)
+def modificar_livro(livro):
 
     titulo = livro.titulo
     autor = livro.autor
@@ -155,21 +152,23 @@ def modificar_livro(filtro):
     ano = input('Insira o novo ano de publicação: ')
     edicao = input('Insira a nova edição...........: ')
 
-    msg = f'UPDATE;{livro.codigo};{titulo};{autor};{ano};{edicao}'
+    livro = Livro(livro.codigo, titulo, autor, edicao, ano)
+    q = Query(Opcao.ALTERAR, livro)
+    msg = pickle.dumps(q)
     s.sendto(msg, (ip, porta))
     retorno, _ = s.recvfrom(1024)
 
     print(retorno.decode())
 
 
-def remover_livro(filtro):
+def remover_livro(livro):
 
-    # msg = f'DELETE;{livro.codigo}'
-    # s.sendto(msg, (ip, porta))
-    # retorno, _ = s.recvfrom(1024)
-    #
-    # print(retorno.decode())
-    pass
+    q = Query(Opcao.DELETAR, livro)
+    msg = pickle.dumps(q)
+    s.sendto(msg, (ip, porta))
+    retorno, _ = s.recvfrom(1024)
+
+    print(retorno.decode())
 
 
 def escolher_livro(livros: List[Livro]) -> Livro:

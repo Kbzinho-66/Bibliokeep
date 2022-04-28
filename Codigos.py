@@ -6,6 +6,7 @@ class Opcao(IntEnum):
     ALTERAR = 2
     DELETAR = 3
     CONSULTAR = 4
+    FILTRO = 5
     SAIR = 0
 
 

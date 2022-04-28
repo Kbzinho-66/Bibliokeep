@@ -19,7 +19,7 @@ def main():
         msg, cliente = s.recvfrom(1024)
         q: Query = pickle.loads(msg)
         opcao = q.query
-        livros = [q.livro]  # REVIEW Ainda não sei o que acontece se receber uma lista mesmo
+        livros = [q.livro]
         filtro = q.filtro
 
         retorno = trata_mensagem(opcao, livros, filtro)
@@ -87,7 +87,7 @@ def trata_mensagem(opcao: Opcao, livros: List[Livro], filtro: Filtro) -> bytes:
         print(livro)
         msg = 'Livro inserido com sucesso.'.encode()
 
-    elif filtro:
+    elif opcao == Opcao.FILTRO:
         print('Consulta:')
         if filtro == Filtro.TITULO:
             print(f'Título = {livro.titulo}')
@@ -114,6 +114,18 @@ def trata_mensagem(opcao: Opcao, livros: List[Livro], filtro: Filtro) -> bytes:
             codigo, titulo, autor, edicao, ano = item
             livros.append(Livro(codigo, titulo, autor, edicao, ano))
         msg = pickle.dumps(livros)
+
+    elif opcao == Opcao.ALTERAR:
+        print('Alterar:')
+        print(f'Para: {livro.__str__()}')
+        # TODO Atualizar o livro
+        pass
+
+    elif opcao == Opcao.DELETAR:
+        print('Deletar:')
+        print(livro)
+        # TODO Fazer todos os paranauê pra deletar
+        pass
 
     elif opcao == Opcao.SAIR:
         msg = 'Servidor fechado automaticamente.'.encode()
