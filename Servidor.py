@@ -70,11 +70,13 @@ def cadastra_livro(livro):
 
     db.execute(
         ''' SELECT codigo FROM autor WHERE nome = %s
-        ''', (livro.autor,)
+        ''', (livro.autor, )
     )
-    cod_autor, *_ = db.fetchone()
-    if not cod_autor:
+    try:
+        cod_autor, *_ = db.fetchone()
+    except TypeError:
         db.execute('SELECT max(codigo) from autor;')
+        cod_autor, *_ = db.fetchone()
         cod_autor += 1
 
         db.execute(
@@ -84,13 +86,15 @@ def cadastra_livro(livro):
 
     db.execute(
         ''' SELECT codigo FROM livros WHERE titulo = %s
-        '''
+        ''', (livro. titulo, )
     )
-    cod_livro, *_ = db.fetchone()
-    if not cod_livro:
+    try:
+        cod_livro, *_ = db.fetchone()
+    except TypeError:
         db.execute('SELECT max(codigo) from livros;')
         cod_livro, *_ = db.fetchone()
         cod_livro += 1
+
         db.execute(
             ''' INSERT INTO livros (codigo, titulo) VALUES (%s, %s)
             ''', (cod_livro, livro.titulo)
@@ -220,7 +224,38 @@ def altera_livro(livro):
 
     print('Alterar:')
     print(f'Para: {livro.__str__()}')
-    # TODO Atualizar o livro
+
+    db.execute(
+        ''' SELECT * FROM livrostemp WHERE codigo = %s
+        ''', (livro.codigo, )
+    )
+    antigo, *_ = db.fetchone()
+
+    db.execute(
+        ''' UPDATE livros
+            SET titulo = %s
+            WHERE titulo = %s
+        ''', (livro.titulo, livro.codigo)
+    )
+
+    db.execute(
+        ''' SELECT codigoautor FROM livroautor WHERE codigolivro = %s
+        ''', (livro.codigo, )
+    )
+    cod_autor, *_ = db.fetchone()
+    db.execute(
+        ''' UPDATE autor
+            SET nome = %s
+            WHERE codigo = %s
+        ''', (livro.autor, cod_autor)
+    )
+
+    db.execute(
+        ''' UPDATE livrostemp
+            SET titulo = %s, autor = %s, edicao = %s, ano = %s
+            WHERE codigo = %s
+        ''', (livro.titulo, livro.autor, livro.edicao, livro.ano_pub, livro.codigo)
+    )
 
     banco_livros.commit()
     db.close()

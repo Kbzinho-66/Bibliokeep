@@ -74,6 +74,9 @@ def menu() -> Tuple[Opcao, Filtro]:
 
 def requisicao(opcao: Opcao, filtro: Filtro):
     """Chama a função apropriada dada a combinação recebida."""
+    if filtro == Filtro.SAIR:
+        return
+
     if opcao == Opcao.CADASTRO:
         cadastro_livro()
 
@@ -115,7 +118,6 @@ def cadastro_livro():
 
 
 def consultar_livros(filtro: Filtro) -> List[Livro]:
-
     """
     Vai ler o filtro escolhido, procurar todos os livros que se encaixam
     e retornar uma lista com os primeiros 20 resultados.
@@ -142,7 +144,6 @@ def consultar_livros(filtro: Filtro) -> List[Livro]:
 
 
 def modificar_livro(livro):
-
     titulo = livro.titulo
     autor = livro.autor
     ano = livro.ano_pub
@@ -153,10 +154,11 @@ def modificar_livro(livro):
     print(f'Ano de Publicação: {ano}')
     print(f'Edição...........: {edicao}')
 
-    titulo = input('Insira o novo título...........: ')
-    autor = input('Insira o novo autor............: ')
-    ano = input('Insira o novo ano de publicação: ')
-    edicao = input('Insira a nova edição...........: ')
+    print('Insira os novos dados:')
+    titulo = input('Novo título...........: ')
+    autor = input('Novo autor............: ')
+    ano = input('Novo ano de publicação: ')
+    edicao = input('Nova edição...........: ')
 
     livro = Livro(livro.codigo, titulo, autor, edicao, ano)
     q = Query(Opcao.ALTERAR, livro)
@@ -168,7 +170,6 @@ def modificar_livro(livro):
 
 
 def remover_livro(livro):
-
     q = Query(Opcao.DELETAR, livro)
     msg = pickle.dumps(q)
     s.sendto(msg, (ip, porta))
