@@ -17,3 +17,6 @@ class Query:
         self.query = query
         self.livro = livro
         self.filtro = filtro
+
+    def __str__(self):
+        return f'Opção: {self.query} - {self.livro.__str__()} - Filtro: {self.filtro}'

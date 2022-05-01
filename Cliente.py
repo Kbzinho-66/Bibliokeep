@@ -78,18 +78,23 @@ def requisicao(opcao: Opcao, filtro: Filtro):
         cadastro_livro()
 
     elif opcao == Opcao.ALTERAR:
-        livros = consultar_livros(Opcao.FILTRO, filtro)
-        modificar_livro(escolher_livro(livros))
+        livros = consultar_livros(filtro)
+        if livros:
+            modificar_livro(escolher_livro(livros))
 
     elif opcao == Opcao.DELETAR:
-        livros = consultar_livros(Opcao.FILTRO, filtro)
-        remover_livro(escolher_livro(livros))
+        livros = consultar_livros(filtro)
+        if livros:
+            remover_livro(escolher_livro(livros))
 
     elif opcao == Opcao.CONSULTAR:
-        livros = consultar_livros(opcao, filtro)
-        print('Livros encontrados:')
-        for livro in livros:
-            print(livro)
+        livros = consultar_livros(filtro)
+        if livros:
+            print('Livros encontrados:')
+            for livro in livros:
+                print(livro)
+        else:
+            print('Nenhum livro encontrado para esse filtro.')
 
 
 def cadastro_livro():
@@ -109,7 +114,7 @@ def cadastro_livro():
     print(retorno.decode())
 
 
-def consultar_livros(opcao: Opcao, filtro: Filtro) -> List[Livro]:
+def consultar_livros(filtro: Filtro) -> List[Livro]:
 
     """
     Vai ler o filtro escolhido, procurar todos os livros que se encaixam
@@ -126,7 +131,8 @@ def consultar_livros(opcao: Opcao, filtro: Filtro) -> List[Livro]:
         edicao = input('Edição: ')
         livro = Livro(ano_pub=ano, edicao=edicao)
 
-    query = Query(opcao, livro, filtro)
+    # noinspection PyUnboundLocalVariable
+    query = Query(Opcao.FILTRAR, livro, filtro)
     msg = pickle.dumps(query)
     s.sendto(msg, (ip, porta))
     retorno, servidor = s.recvfrom(4096)
