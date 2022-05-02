@@ -56,7 +56,7 @@ def menu() -> Tuple[Opcao, Filtro]:
                 print(f'{Filtro.SAIR}. Voltar.')
 
                 while True:
-                    filtro = input('Escolha uma opção: ')
+                    filtro = input('Escolha uma opção de busca: ')
                     if filtro.isalnum():
                         filtro = int(filtro)
                         break
@@ -64,7 +64,7 @@ def menu() -> Tuple[Opcao, Filtro]:
                 if filtro == Opcao.SAIR:
                     break
                 elif filtro < 0 or filtro > 3:
-                    print('Sub-opção inválida.')
+                    print('Opção inválida.')
                     continue
                 else:
                     break
@@ -82,8 +82,10 @@ def requisicao(opcao: Opcao, filtro: Filtro):
 
     elif opcao == Opcao.ALTERAR:
         livros = consultar_livros(filtro)
-        if livros:
+        if len(livros) > 1:
             modificar_livro(escolher_livro(livros))
+        elif livros:
+            modificar_livro(livros.pop())
 
     elif opcao == Opcao.DELETAR:
         livros = consultar_livros(filtro)
@@ -179,6 +181,10 @@ def remover_livro(livro):
 
 
 def escolher_livro(livros: List[Livro]) -> Livro:
+    """
+    Como as funções que buscam livros retornam uma lista com diversos livros que
+    se encaixam, essa função permite escolher um desses pra excluir ou alterar.
+    """
     indices = {}
     for pos, livro in enumerate(livros):
         indices[livro.codigo] = pos

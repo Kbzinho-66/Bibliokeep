@@ -14,9 +14,9 @@ class Livro:
 class Query:
 
     def __init__(self, query, livro, filtro=''):
-        self.query = query
+        self.opcao = query
         self.livro = livro
         self.filtro = filtro
 
     def __str__(self):
-        return f'Opção: {self.query} - {self.livro.__str__()} - Filtro: {self.filtro}'
+        return f'Opção: {self.opcao} - {self.livro.__str__()} - Filtro: {self.filtro}'

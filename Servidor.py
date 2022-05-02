@@ -18,38 +18,34 @@ def main():
     while True:
         msg, cliente = s.recvfrom(1024)
         q: Query = pickle.loads(msg)
-        opcao = q.query
-        livros = [q.livro]
-        filtro = q.filtro
 
-        retorno = trata_mensagem(opcao, livros, filtro)
+        retorno = trata_mensagem(q)
         s.sendto(retorno, cliente)
-        if opcao == Opcao.SAIR:
+        if q.opcao == Opcao.SAIR:
             break
 
     s.close()
 
 
-def trata_mensagem(opcao: Opcao, livros: List[Livro], filtro: Filtro) -> bytes:
-    livro = livros[0]
+def trata_mensagem(q: Query) -> bytes:
 
-    if opcao == Opcao.CADASTRO:
-        cadastra_livro(livro)
+    if q.opcao == Opcao.CADASTRO:
+        cadastra_livro(q.livro)
         msg = 'Livro inserido com sucesso.'.encode()
 
-    elif opcao == Opcao.FILTRAR:
-        livros = consulta_livros(filtro, livro)
+    elif q.opcao == Opcao.FILTRAR:
+        livros = consulta_livros(q.filtro, q.livro)
         msg = pickle.dumps(livros)
 
-    elif opcao == Opcao.ALTERAR:
-        altera_livro(livro)
+    elif q.opcao == Opcao.ALTERAR:
+        altera_livro(q.livro)
         msg = 'Livro alterado com sucesso.'.encode()
 
-    elif opcao == Opcao.DELETAR:
-        deleta_livro(livro)
+    elif q.opcao == Opcao.DELETAR:
+        deleta_livro(q.livro)
         msg = 'Livro deletado com sucesso.'.encode()
 
-    elif opcao == Opcao.SAIR:
+    elif q.opcao == Opcao.SAIR:
         msg = 'Servidor fechado automaticamente.'.encode()
     else:
         msg = 'Opção inválida.'.encode()
@@ -70,7 +66,7 @@ def cadastra_livro(livro):
 
     db.execute(
         ''' SELECT codigo FROM autor WHERE nome = %s
-        ''', (livro.autor, )
+        ''', (livro.autor,)
     )
     try:
         cod_autor, *_ = db.fetchone()
@@ -86,7 +82,7 @@ def cadastra_livro(livro):
 
     db.execute(
         ''' SELECT codigo FROM livros WHERE titulo = %s
-        ''', (livro. titulo, )
+        ''', (livro.titulo,)
     )
     try:
         cod_livro, *_ = db.fetchone()
@@ -212,7 +208,6 @@ def deleta_livro(livro):
 
 
 def altera_livro(livro):
-
     banco_livros = psycopg2.connect(
         host='localhost',
         database='livros',
@@ -222,25 +217,26 @@ def altera_livro(livro):
 
     db = banco_livros.cursor()
 
-    print('Alterar:')
-    print(f'Para: {livro.__str__()}')
-
     db.execute(
         ''' SELECT * FROM livrostemp WHERE codigo = %s
-        ''', (livro.codigo, )
+        ''', (livro.codigo,)
     )
-    antigo, *_ = db.fetchone()
+    cod_ant, titulo_ant, autor_ant, edicao_ant, ano_ant, *_ = db.fetchone()
+
+    print('Alterar:')
+    print(f'De: {autor_ant} - {titulo_ant}({ano_ant}, {edicao_ant}ª edição)')
+    print(f'Para: {livro.__str__()}')
 
     db.execute(
         ''' UPDATE livros
             SET titulo = %s
             WHERE titulo = %s
-        ''', (livro.titulo, livro.codigo)
+        ''', (livro.titulo, livro.titulo)
     )
 
     db.execute(
         ''' SELECT codigoautor FROM livroautor WHERE codigolivro = %s
-        ''', (livro.codigo, )
+        ''', (livro.codigo,)
     )
     cod_autor, *_ = db.fetchone()
     db.execute(
