@@ -28,7 +28,10 @@ def main():
 
 
 def trata_mensagem(q: Query) -> bytes:
-
+    """
+    Chama a função adequada pra tratar a query e retorna uma mensagem já codificada
+    e pronta para enviar ao cliente.
+    """
     if q.opcao == Opcao.CADASTRO:
         cadastra_livro(q.livro)
         msg = 'Livro inserido com sucesso.'.encode()
