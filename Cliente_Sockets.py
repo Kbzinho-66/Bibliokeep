@@ -74,11 +74,12 @@ def menu() -> Tuple[Opcao, Filtro]:
 
 def requisicao(opcao: Opcao, filtro: Filtro):
     """Chama a função apropriada dada a combinação recebida."""
-    if filtro == Filtro.SAIR:
-        return
 
     if opcao == Opcao.CADASTRO:
         cadastro_livro()
+
+    elif filtro == Filtro.SAIR:
+        return
 
     elif opcao == Opcao.ALTERAR:
         livros = consultar_livros(filtro)
