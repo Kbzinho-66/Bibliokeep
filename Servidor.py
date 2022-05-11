@@ -3,8 +3,8 @@ import psycopg2
 import socket
 from typing import List
 
-from Classes_Sockets import Query, Livro
-from Codigos_Sockets import Opcao, Filtro
+from Classes import Query, Livro
+from Codigos import Opcao, Filtro
 
 
 def main():

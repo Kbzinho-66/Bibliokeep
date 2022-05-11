@@ -2,8 +2,8 @@ import pickle
 import socket
 from typing import Tuple, List
 
-from Classes_Sockets import Livro, Query
-from Codigos_Sockets import Opcao, Filtro
+from Classes import Livro, Query
+from Codigos import Opcao, Filtro
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 ip = 'localhost'
