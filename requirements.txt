@@ -3,7 +3,7 @@ chardet==4.0.0
 colorama==0.4.4
 Cython==0.29.28
 dl==0.1.0
-docutils==0.18.1
+docutils
 ipaddr==2.2.0
 keyring==23.0.1
 mypy_extensions==0.4.3
