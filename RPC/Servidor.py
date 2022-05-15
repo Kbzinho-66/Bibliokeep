@@ -1,60 +1,21 @@
-import pickle
+import xmlrpc.server
 import psycopg2
-import socket
 from typing import List
 
-from Classes import Query, Livro
-from Codigos import Opcao, Filtro
+from Classes import Livro
+from Codigos import Filtro
 
 
 def main():
-    ip = 'localhost'
-    porta = 12000
+    servidor = xmlrpc.server.SimpleXMLRPCServer(("localhost", 13000))
+    servidor.register_function(cadastra_livro, "cadastrar")
+    servidor.register_function(consulta_livros, "filtrar")
+    servidor.register_function(deleta_livro, "deletar")
+    servidor.register_function(altera_livro, "alterar")
+    servidor.register_function(fecha_servidor, "sair")
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-    s.bind((ip, porta))
-
-    while True:
-        msg, cliente = s.recvfrom(1024)
-        q: Query = pickle.loads(msg)
-
-        retorno = trata_mensagem(q)
-        s.sendto(retorno, cliente)
-        if q.opcao == Opcao.SAIR:
-            break
-
-    s.close()
-
-
-def trata_mensagem(q: Query) -> bytes:
-    """
-    Chama a função adequada pra tratar a query e retorna uma mensagem já codificada
-    e pronta para enviar ao cliente.
-    """
-    if q.opcao == Opcao.CADASTRO:
-        cadastra_livro(q.livro)
-        msg = 'Livro inserido com sucesso.'.encode()
-
-    elif q.opcao == Opcao.FILTRAR:
-        livros = consulta_livros(q.filtro, q.livro)
-        msg = pickle.dumps(livros)
-
-    elif q.opcao == Opcao.ALTERAR:
-        altera_livro(q.livro)
-        msg = 'Livro alterado com sucesso.'.encode()
-
-    elif q.opcao == Opcao.DELETAR:
-        deleta_livro(q.livro)
-        msg = 'Livro deletado com sucesso.'.encode()
-
-    elif q.opcao == Opcao.SAIR:
-        msg = 'Servidor fechado automaticamente.'.encode()
-    else:
-        msg = 'Opção inválida.'.encode()
-
-    # noinspection PyUnboundLocalVariable
-    return msg
+    # TODO Dar um jeito de fechar melhor
+    servidor.serve_forever()
 
 
 def cadastra_livro(livro):
@@ -261,6 +222,10 @@ def altera_livro(livro):
 
     if banco_livros is not None:
         banco_livros.close()
+
+
+def fecha_servidor():
+    pass
 
 
 if __name__ == '__main__':

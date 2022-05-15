@@ -1,16 +1,12 @@
-import pickle
-import socket
+import xmlrpc.client
 from typing import Tuple, List
 
-from Classes import Livro, Query
+from Classes import Livro
 from Codigos import Opcao, Filtro
-
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-ip = 'localhost'
-porta = 12000
 
 
 def main():
+
     while True:
         opcao, filtro = menu()
         if opcao:
@@ -28,15 +24,15 @@ def menu() -> Tuple[Opcao, Filtro]:
     filtro = 0
 
     while opcao:
-        print('_______________________________')
-        print(f'{Opcao.CADASTRO}. Cadastrar um livro.')
-        print(f'{Opcao.ALTERAR}. Alterar um livro.')
-        print(f'{Opcao.DELETAR}. Deletar um livro.')
-        print(f'{Opcao.CONSULTAR}. Fazer uma consulta.')
-        print(f'{Opcao.SAIR}. Sair.')
+        print("_______________________________")
+        print(f"{Opcao.CADASTRO}. Cadastrar um livro.")
+        print(f"{Opcao.ALTERAR}. Alterar um livro.")
+        print(f"{Opcao.DELETAR}. Deletar um livro.")
+        print(f"{Opcao.CONSULTAR}. Fazer uma consulta.")
+        print(f"{Opcao.SAIR}. Sair.")
 
         while True:
-            opcao = input('Escolha uma opção: ')
+            opcao = input("Escolha uma opção: ")
             if opcao.isnumeric():
                 opcao = int(opcao)
                 break
@@ -44,19 +40,19 @@ def menu() -> Tuple[Opcao, Filtro]:
         if opcao == Opcao.SAIR:
             return Opcao.SAIR, Filtro.SAIR
         elif opcao < 0 or opcao > 4:
-            print('Opção inválida.')
+            print("Opção inválida.")
             continue
 
         if opcao != Opcao.CADASTRO:
             while True:
-                print('_______________________________')
-                print(f'{Filtro.TITULO}. Consulta por título.')
-                print(f'{Filtro.AUTOR}. Consulta por autor.')
-                print(f'{Filtro.ANO_EDI}. Consulta por ano e edição.')
-                print(f'{Filtro.SAIR}. Voltar.')
+                print("_______________________________")
+                print(f"{Filtro.TITULO}. Consulta por título.")
+                print(f"{Filtro.AUTOR}. Consulta por autor.")
+                print(f"{Filtro.ANO_EDI}. Consulta por ano e edição.")
+                print(f"{Filtro.SAIR}. Voltar.")
 
                 while True:
-                    filtro = input('Escolha uma opção de busca: ')
+                    filtro = input("Escolha uma opção de busca: ")
                     if filtro.isalnum():
                         filtro = int(filtro)
                         break
@@ -64,7 +60,7 @@ def menu() -> Tuple[Opcao, Filtro]:
                 if filtro == Opcao.SAIR:
                     break
                 elif filtro < 0 or filtro > 3:
-                    print('Opção inválida.')
+                    print("Opção inválida.")
                     continue
                 else:
                     break
@@ -104,6 +100,8 @@ def requisicao(opcao: Opcao, filtro: Filtro):
 
 
 def cadastro_livro():
+    servidor = xmlrpc.client.ServerProxy('http://localhost:13000')
+
     print('Insira as informações do livro.')
     titulo = input('Título: ')
     autor = input('Autor: ')
@@ -111,13 +109,7 @@ def cadastro_livro():
     edicao = input('Edição: ')
 
     livro = Livro(0, titulo, autor, edicao, ano)
-    query = Query(Opcao.CADASTRO, livro)
-
-    msg = pickle.dumps(query)
-    s.sendto(msg, (ip, porta))
-    retorno, _ = s.recvfrom(1024)
-
-    print(retorno.decode())
+    print(servidor.cadastrar(livro))
 
 
 def consultar_livros(filtro: Filtro) -> List[Livro]:
@@ -125,28 +117,24 @@ def consultar_livros(filtro: Filtro) -> List[Livro]:
     Vai ler o filtro escolhido, procurar todos os livros que se encaixam
     e retornar uma lista com os primeiros 20 resultados.
     """
+    servidor = xmlrpc.client.ServerProxy('http://localhost:13000')
+
     if filtro == Filtro.TITULO:
-        titulo = input('Pesquisar títulos: ')
-        livro = Livro(titulo=titulo)
+        busca = input('Pesquisar título: ')
     elif filtro == Filtro.AUTOR:
-        autor = input('Pesquisar autor: ')
-        livro = Livro(autor=autor)
+        busca = input('Pesquisar autor: ')
     elif filtro == Filtro.ANO_EDI:
         ano = input('Pesquisar ano de publicação: ')
         edicao = input('Edição: ')
-        livro = Livro(ano_pub=ano, edicao=edicao)
+        busca = (ano, edicao)
 
     # noinspection PyUnboundLocalVariable
-    query = Query(Opcao.FILTRAR, livro, filtro)
-    msg = pickle.dumps(query)
-    s.sendto(msg, (ip, porta))
-    retorno, servidor = s.recvfrom(4096)
-    livros = pickle.loads(retorno)
-
-    return livros
+    return servidor.filtrar(filtro, busca)
 
 
 def modificar_livro(livro):
+    servidor = xmlrpc.client.ServerProxy('http://localhost:13000')
+
     titulo = livro.titulo
     autor = livro.autor
     ano = livro.ano_pub
@@ -164,21 +152,12 @@ def modificar_livro(livro):
     edicao = input('Nova edição...........: ')
 
     livro = Livro(livro.codigo, titulo, autor, edicao, ano)
-    q = Query(Opcao.ALTERAR, livro)
-    msg = pickle.dumps(q)
-    s.sendto(msg, (ip, porta))
-    retorno, _ = s.recvfrom(1024)
-
-    print(retorno.decode())
+    print(servidor.alterar(livro))
 
 
 def remover_livro(livro):
-    q = Query(Opcao.DELETAR, livro)
-    msg = pickle.dumps(q)
-    s.sendto(msg, (ip, porta))
-    retorno, _ = s.recvfrom(1024)
-
-    print(retorno.decode())
+    servidor = xmlrpc.client.ServerProxy('http://localhost:13000')
+    print(servidor.deletar(livro))
 
 
 def escolher_livro(livros: List[Livro]) -> Livro:
@@ -203,13 +182,8 @@ def escolher_livro(livros: List[Livro]) -> Livro:
 
 
 def fechar_servidor():
-    q = Query(Opcao.SAIR, [])
-    msg = pickle.dumps(q)
-    s.sendto(msg, (ip, porta))
-    retorno, _ = s.recvfrom(1024)
-    s.close()
-
-    print(retorno.decode())
+    servidor = xmlrpc.client.ServerProxy('http://localhost:13000')
+    servidor.sair()
 
 
 if __name__ == '__main__':

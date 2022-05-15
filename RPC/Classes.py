@@ -10,13 +10,3 @@ class Livro:
     def __str__(self):
         return f'{self.autor.strip()} - {self.titulo}({self.ano_pub}, {self.edicao}ª edição)'
 
-
-class Query:
-
-    def __init__(self, query, livro, filtro=''):
-        self.opcao = query
-        self.livro = livro
-        self.filtro = filtro
-
-    def __str__(self):
-        return f'Opção: {self.opcao} - {self.livro.__str__()} - Filtro: {self.filtro}'
