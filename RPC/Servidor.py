@@ -10,7 +10,6 @@ def main():
     servidor.register_function(consulta_livros, "filtrar")
     servidor.register_function(deleta_livro, "deletar")
     servidor.register_function(altera_livro, "alterar")
-    servidor.register_function(fecha_servidor, "sair")
 
     # TODO Dar um jeito de fechar melhor
     servidor.serve_forever()
@@ -155,7 +154,8 @@ def deleta_livro(livro):
     print('Deletar:')
     codigo = livro['codigo']
     titulo = livro['titulo']
-    print(f'{codigo} -> {titulo}')
+    autor = livro['autor']
+    print(f'{titulo.strip()}, {autor}')
     db.execute(
         ''' DELETE FROM edicao WHERE codigolivro = %s
         ''', (codigo,)
@@ -178,6 +178,8 @@ def deleta_livro(livro):
 
     if banco_livros is not None:
         banco_livros.close()
+
+    return 'Livro deletado.'
 
 
 def altera_livro(livro):
@@ -232,9 +234,7 @@ def altera_livro(livro):
     if banco_livros is not None:
         banco_livros.close()
 
-
-def fecha_servidor():
-    pass
+    return 'Livro alterado com sucesso.'
 
 
 if __name__ == '__main__':

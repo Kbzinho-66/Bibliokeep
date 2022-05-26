@@ -12,8 +12,6 @@ def main():
         else:
             break
 
-    fechar_servidor()
-
 
 def menu() -> Tuple[Opcao, Filtro]:
     """Lê uma combinação de uma opção e um filtro, quando necessário."""
@@ -141,7 +139,7 @@ def modificar_livro(livro):
     codigo = livro['codigo']
     titulo = livro['titulo']
     autor = livro['autor']
-    ano = livro['ano_pub']
+    ano = livro['ano']
     edicao = livro['edicao']
 
     print(f'Título...........: {titulo}')
@@ -177,25 +175,20 @@ def escolher_livro(livros):
     """
     indices = {}
     for pos, livro in enumerate(livros):
-        indices[livro['codigo']] = pos
         codigo = livro['codigo']
         titulo = livro['titulo']
+        indices[codigo] = pos
         print(f'{codigo}: {titulo}')
-        while True:
-            cod = input('Insira o código do livro que quer selecionar: ')
-            if cod.isnumeric():
-                cod = int(cod)
-                if cod in indices:
-                    break
-                else:
-                    print('Código inválido.')
+    while True:
+        cod = input('Insira o código do livro que quer selecionar: ')
+        if cod.isnumeric():
+            cod = int(cod)
+            if cod in indices:
+                break
+            else:
+                print('Código inválido.')
 
-        return livros[indices[cod]]
-
-
-def fechar_servidor():
-    servidor = xmlrpc.client.ServerProxy('http://localhost:13000')
-    servidor.sair()
+    return livros[indices[cod]]
 
 
 if __name__ == '__main__':
