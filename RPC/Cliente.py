@@ -1,11 +1,10 @@
 import xmlrpc.client
-from typing import Tuple, List
+from typing import Tuple
 
 from Codigos import Opcao, Filtro
 
 
 def main():
-
     while True:
         opcao, filtro = menu()
         if opcao:
@@ -77,19 +76,19 @@ def requisicao(opcao: Opcao, filtro: Filtro):
         return
 
     elif opcao == Opcao.ALTERAR:
-        livros = consultar_livros(filtro)
+        livros = consultar_livros(int(filtro))
         if len(livros) > 1:
             modificar_livro(escolher_livro(livros))
         elif livros:
             modificar_livro(livros.pop())
 
     elif opcao == Opcao.DELETAR:
-        livros = consultar_livros(filtro)
+        livros = consultar_livros(int(filtro))
         if livros:
             remover_livro(escolher_livro(livros))
 
     elif opcao == Opcao.CONSULTAR:
-        livros = consultar_livros(filtro)
+        livros = consultar_livros(int(filtro))
         if livros:
             print('Livros encontrados:')
             for livro in livros:
@@ -116,7 +115,7 @@ def cadastro_livro():
     print(servidor.cadastrar(livro))
 
 
-def consultar_livros(filtro: Filtro):
+def consultar_livros(filtro):
     """
     Vai ler o filtro escolhido, procurar todos os livros que se encaixam
     e retornar uma lista com os primeiros 20 resultados.
@@ -179,17 +178,19 @@ def escolher_livro(livros):
     indices = {}
     for pos, livro in enumerate(livros):
         indices[livro['codigo']] = pos
-        print(f'{livro['codigo']}: {livro['titulo']}')
-    while True:
-        cod = input('Insira o código do livro que quer selecionar: ')
-        if cod.isnumeric():
-            cod = int(cod)
-            if cod in indices:
-                break
-            else:
-                print('Código inválido.')
+        codigo = livro['codigo']
+        titulo = livro['titulo']
+        print(f'{codigo}: {titulo}')
+        while True:
+            cod = input('Insira o código do livro que quer selecionar: ')
+            if cod.isnumeric():
+                cod = int(cod)
+                if cod in indices:
+                    break
+                else:
+                    print('Código inválido.')
 
-    return livros[indices[cod]]
+        return livros[indices[cod]]
 
 
 def fechar_servidor():

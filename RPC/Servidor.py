@@ -1,6 +1,5 @@
 import xmlrpc.server
 import psycopg2
-from typing import List
 
 from Codigos import Filtro
 
@@ -89,8 +88,10 @@ def cadastra_livro(livro):
     print('Livro inserido:')
     print(livro)
 
+    return 'Livro inserido'
 
-def consulta_livros(filtro: Filtro, livro):
+
+def consulta_livros(filtro, busca):
     banco_livros = psycopg2.connect(
         host='localhost',
         database='livros',
@@ -102,22 +103,23 @@ def consulta_livros(filtro: Filtro, livro):
 
     print('Consulta:')
     if filtro == Filtro.TITULO:
-        print(f'Título = {livro['titulo']}')
+        print(f'Título = {busca}')
         db.execute(
             ''' SELECT * FROM livrostemp WHERE titulo ~ %s
-            ''', (livro['titulo'],)
+            ''', (busca,)
         )
     elif filtro == Filtro.AUTOR:
-        print(f'Autor = {livro['autor']}')
+        print(f'Autor = {busca}')
         db.execute(
             ''' SELECT * FROM livrostemp WHERE autor ~ %s
-            ''', (livro['autor'],)
+            ''', (busca,)
         )
     elif filtro == Filtro.ANO_EDI:
-        print(f'Ano = {livro['ano']} e Edição = {livro['edicao']}')
+        ano, edicao = busca
+        print(f'Ano = {ano} e Edição = {edicao}')
         db.execute(
             ''' SELECT * FROM livrostemp where ano = %s and edicao = %s
-            ''', (livro['ano'], livro['edicao'])
+            ''', (ano, edicao)
         )
 
     resultado = db.fetchmany(20)
@@ -125,11 +127,11 @@ def consulta_livros(filtro: Filtro, livro):
     for item in resultado:
         codigo, titulo, autor, edicao, ano = item
         livros.append({
-            'codigo': codigo,
+            'codigo': int(codigo),
             'titulo': titulo,
             'autor': autor,
-            'ano': ano,
-            'edicao': edicao
+            'ano': int(ano),
+            'edicao': int(edicao)
         })
 
     db.close()
@@ -151,22 +153,24 @@ def deleta_livro(livro):
     db = banco_livros.cursor()
 
     print('Deletar:')
-    print(f'{livro['codigo']} -> ' + livro.__str__())
+    codigo = livro['codigo']
+    titulo = livro['titulo']
+    print(f'{codigo} -> {titulo}')
     db.execute(
         ''' DELETE FROM edicao WHERE codigolivro = %s
-        ''', (livro['codigo'],)
+        ''', (codigo,)
     )
     db.execute(
         ''' DELETE FROM livroautor WHERE codigolivro = %s
-        ''', (livro['codigo'],)
+        ''', (codigo,)
     )
     db.execute(
         ''' DELETE FROM livros WHERE codigo = %s;
-        ''', (livro['codigo'],)
+        ''', (codigo,)
     )
     db.execute(
         ''' DELETE FROM livrostemp WHERE codigo = %s;
-        ''', (livro['codigo'],)
+        ''', (codigo,)
     )
 
     banco_livros.commit()
