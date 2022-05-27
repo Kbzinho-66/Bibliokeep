@@ -2,66 +2,65 @@ import xmlrpc.client
 from typing import Tuple
 
 from Codigos import Opcao, Filtro
+from PyInquirer import style_from_dict, Token, prompt
 
 
 def main():
     while True:
         opcao, filtro = menu()
-        if opcao:
+        print(f'Opção = {opcao}\tFiltro = {filtro}')
+        if opcao != 'Sair':
             requisicao(opcao, filtro)
         else:
             break
 
 
 def menu() -> Tuple[Opcao, Filtro]:
-    """Lê uma combinação de uma opção e um filtro, quando necessário."""
+    estilo = style_from_dict({
+        Token.Separator: '#6C6C6C',
+        Token.QuestionMark: '#FF9D00 bold',
+        Token.Selected: '#5F819D',
+        Token.Pointer: '#FF9D00 bold',
+        Token.Answer: '#5F819D bold',
+    })
 
-    opcao = 1
-    filtro = 0
+    prompt_opcao = {
+        'type': 'list',
+        'name': 'opcao',
+        'message': 'Escolha uma opção:',
+        'instruction': 'Use as setinhas',
+        'choices': [
+            'Cadastrar um livro',
+            'Alterar um livro',
+            'Deletar um livro',
+            'Consultar um livro',
+            'Sair'
+        ]
+    }
 
-    while opcao:
-        print("_______________________________")
-        print(f"{Opcao.CADASTRO}. Cadastrar um livro.")
-        print(f"{Opcao.ALTERAR}. Alterar um livro.")
-        print(f"{Opcao.DELETAR}. Deletar um livro.")
-        print(f"{Opcao.CONSULTAR}. Fazer uma consulta.")
-        print(f"{Opcao.SAIR}. Sair.")
+    resposta = prompt(prompt_opcao, style=estilo)
+    print(resposta)
+    opcao = resposta['opcao']
 
-        while True:
-            opcao = input("Escolha uma opção: ")
-            if opcao.isnumeric():
-                opcao = int(opcao)
-                break
+    filtro = ''
+    if opcao != 'Cadastrar um livro' and opcao != 'Sair':
+        prompt_filtro = {
+            'type': 'list',
+            'name': 'filtro',
+            'message': 'Escolha uma opção:',
+            'help': 'Use as setinhas',
+            'choices': [
+                'Filtrar por título',
+                'Filtrar por autor',
+                'Filtrar por ano e edição',
+                'Sair'
+            ]
+        }
 
-        if opcao == Opcao.SAIR:
-            return Opcao.SAIR, Filtro.SAIR
-        elif opcao < 0 or opcao > 4:
-            print("Opção inválida.")
-            continue
+        resposta = prompt(prompt_filtro, style=estilo)
+        filtro = resposta['filtro']
 
-        if opcao != Opcao.CADASTRO:
-            while True:
-                print("_______________________________")
-                print(f"{Filtro.TITULO}. Consulta por título.")
-                print(f"{Filtro.AUTOR}. Consulta por autor.")
-                print(f"{Filtro.ANO_EDI}. Consulta por ano e edição.")
-                print(f"{Filtro.SAIR}. Voltar.")
-
-                while True:
-                    filtro = input("Escolha uma opção de busca: ")
-                    if filtro.isalnum():
-                        filtro = int(filtro)
-                        break
-
-                if filtro == Opcao.SAIR:
-                    break
-                elif filtro < 0 or filtro > 3:
-                    print("Opção inválida.")
-                    continue
-                else:
-                    break
-
-        return Opcao(opcao), Filtro(filtro)
+    return opcao, filtro
 
 
 def requisicao(opcao: Opcao, filtro: Filtro):
