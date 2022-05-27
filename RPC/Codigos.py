@@ -2,16 +2,16 @@ from enum import IntEnum
 
 
 class Opcao(IntEnum):
-    CADASTRO = 1
-    ALTERAR = 2
-    DELETAR = 3
-    CONSULTAR = 4
+    CADASTRO = 0
+    ALTERAR = 1
+    DELETAR = 2
+    CONSULTAR = 3
+    SAIR = 4
     FILTRAR = 5
-    SAIR = 0
 
 
 class Filtro(IntEnum):
-    TITULO = 1
-    AUTOR = 2
-    ANO_EDI = 3
-    SAIR = 0
+    TITULO = 0
+    AUTOR = 1
+    ANO_EDI = 2
+    SAIR = 3

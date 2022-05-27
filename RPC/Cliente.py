@@ -2,65 +2,29 @@ import xmlrpc.client
 from typing import Tuple
 
 from Codigos import Opcao, Filtro
-from PyInquirer import style_from_dict, Token, prompt
+from simple_term_menu import TerminalMenu
 
 
 def main():
     while True:
         opcao, filtro = menu()
-        print(f'Opção = {opcao}\tFiltro = {filtro}')
-        if opcao != 'Sair':
+        if opcao != Opcao.SAIR:
             requisicao(opcao, filtro)
         else:
             break
 
 
 def menu() -> Tuple[Opcao, Filtro]:
-    estilo = style_from_dict({
-        Token.Separator: '#6C6C6C',
-        Token.QuestionMark: '#FF9D00 bold',
-        Token.Selected: '#5F819D',
-        Token.Pointer: '#FF9D00 bold',
-        Token.Answer: '#5F819D bold',
-    })
 
-    prompt_opcao = {
-        'type': 'list',
-        'name': 'opcao',
-        'message': 'Escolha uma opção:',
-        'instruction': 'Use as setinhas',
-        'choices': [
-            'Cadastrar um livro',
-            'Alterar um livro',
-            'Deletar um livro',
-            'Consultar um livro',
-            'Sair'
-        ]
-    }
+    prompt = TerminalMenu(['Cadastro', 'Alteração', 'Remoção', 'Consulta', 'Sair'], title='Escolha uma opção: ')
+    opcao = prompt.show()
+    filtro = 0
 
-    resposta = prompt(prompt_opcao, style=estilo)
-    print(resposta)
-    opcao = resposta['opcao']
+    if opcao != Opcao.CADASTRO and opcao != Opcao.SAIR:
+        prompt = TerminalMenu(['Título', 'Autor', 'Ano e Edição', 'Sair'], title='Escolha um filtro: ')
+        filtro = prompt.show()
 
-    filtro = ''
-    if opcao != 'Cadastrar um livro' and opcao != 'Sair':
-        prompt_filtro = {
-            'type': 'list',
-            'name': 'filtro',
-            'message': 'Escolha uma opção:',
-            'help': 'Use as setinhas',
-            'choices': [
-                'Filtrar por título',
-                'Filtrar por autor',
-                'Filtrar por ano e edição',
-                'Sair'
-            ]
-        }
-
-        resposta = prompt(prompt_filtro, style=estilo)
-        filtro = resposta['filtro']
-
-    return opcao, filtro
+    return Opcao(opcao), Filtro(filtro)
 
 
 def requisicao(opcao: Opcao, filtro: Filtro):
