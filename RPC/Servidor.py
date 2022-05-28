@@ -12,7 +12,11 @@ def main():
     servidor.register_function(altera_livro, "alterar")
 
     # TODO Dar um jeito de fechar melhor
-    servidor.serve_forever()
+    try:
+        servidor.serve_forever()
+    except KeyboardInterrupt:
+        servidor.shutdown()
+        print('\nServidor fechado.')
 
 
 def cadastra_livro(livro):
@@ -199,8 +203,13 @@ def altera_livro(livro):
     cod_ant, titulo_ant, autor_ant, edicao_ant, ano_ant, *_ = db.fetchone()
 
     print('Alterar:')
-    print(f'De: {autor_ant} - {titulo_ant}({ano_ant}, {edicao_ant}ª edição)')
-    print(f'Para: {livro.__str__()}')
+    print(f'De: {titulo_ant} - {autor_ant} ({ano_ant}, {edicao_ant}ª edição)')
+
+    titulo = livro['titulo']
+    autor = livro['autor']
+    ano = livro['ano']
+    edicao = livro['edicao']
+    print(f'Para: {titulo} - {autor} ({ano}, {edicao}ª edição)')
 
     db.execute(
         ''' UPDATE livros

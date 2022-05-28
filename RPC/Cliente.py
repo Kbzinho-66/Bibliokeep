@@ -20,9 +20,15 @@ def menu() -> Tuple[Opcao, Filtro]:
     opcao = prompt.show()
     filtro = 0
 
+    if opcao is None:
+        opcao = Opcao.SAIR
+
     if opcao != Opcao.CADASTRO and opcao != Opcao.SAIR:
         prompt = TerminalMenu(['Título', 'Autor', 'Ano e Edição', 'Sair'], title='Escolha um filtro: ')
         filtro = prompt.show()
+
+        if filtro is None:
+            filtro = Filtro.SAIR
 
     return Opcao(opcao), Filtro(filtro)
 
@@ -38,22 +44,26 @@ def requisicao(opcao: Opcao, filtro: Filtro):
 
     elif opcao == Opcao.ALTERAR:
         livros = consultar_livros(int(filtro))
-        if len(livros) > 1:
-            modificar_livro(escolher_livro(livros))
-        elif livros:
-            modificar_livro(livros.pop())
+        escolhido = escolher_livro(livros)
+        if escolhido:
+            modificar_livro(escolhido)
 
     elif opcao == Opcao.DELETAR:
         livros = consultar_livros(int(filtro))
-        if livros:
-            remover_livro(escolher_livro(livros))
+        escolhido = escolher_livro(livros)
+        if escolhido:
+            remover_livro(escolhido)
 
     elif opcao == Opcao.CONSULTAR:
         livros = consultar_livros(int(filtro))
         if livros:
             print('Livros encontrados:')
             for livro in livros:
-                print(livro)
+                titulo = livro['titulo']
+                autor = livro['autor']
+                ano = livro['ano']
+                edicao = livro['edicao']
+                print(f'{titulo.strip()} - {autor.strip()}, ({ano}, {edicao}ª edição)')
         else:
             print('Nenhum livro encontrado para esse filtro.')
 
@@ -136,22 +146,34 @@ def escolher_livro(livros):
     Como as funções que buscam livros retornam uma lista com diversos livros que
     se encaixam, essa função permite escolher um desses pra excluir ou alterar.
     """
+    if len(livros) == 1:
+        return livros.pop()
+
     indices = {}
     for pos, livro in enumerate(livros):
         codigo = livro['codigo']
         titulo = livro['titulo']
+        autor = livro['autor']
+        ano = livro['ano']
+        edicao = livro['edicao']
         indices[codigo] = pos
-        print(f'{codigo}: {titulo}')
+        print(f'{codigo}: {titulo.strip()} - {autor.strip()}, ({ano}, {edicao}ª edição)')
+
     while True:
-        cod = input('Insira o código do livro que quer selecionar: ')
+        cod = input('Insira o código do livro que quer selecionar ou 0 para cancelar: ')
         if cod.isnumeric():
             cod = int(cod)
             if cod in indices:
                 break
+            elif cod == 0:
+                break
             else:
                 print('Código inválido.')
 
-    return livros[indices[cod]]
+    if cod == 0:
+        return None
+    else:
+        return livros[indices[cod]]
 
 
 if __name__ == '__main__':
