@@ -2,7 +2,7 @@ import xmlrpc.client
 from typing import Tuple
 
 from Codigos import Opcao, Filtro
-from simple_term_menu import TerminalMenu
+from PyInquirer import style_from_dict, Token, prompt
 
 
 def main():
@@ -15,20 +15,49 @@ def main():
 
 
 def menu() -> Tuple[Opcao, Filtro]:
+    estilo = style_from_dict({
+        Token.Separator: '#6C6C6C',
+        Token.QuestionMark: '#FF9D00 bold',
+        Token.Selected: '#5F819D',
+        Token.Pointer: '#FF9D00 bold',
+        Token.Answer: '#5F819D bold',
+    })
 
-    prompt = TerminalMenu(['Cadastro', 'Alteração', 'Remoção', 'Consulta', 'Sair'], title='Escolha uma opção: ')
-    opcao = prompt.show()
-    filtro = 0
+    prompt_opcao = {
+        'type': 'list',
+        'name': 'opcao',
+        'message': 'Escolha uma opção:',
+        'instruction': 'Use as setinhas',
+        'choices': [
+            Opcao.CADASTRO.value,
+            Opcao.ALTERAR.value,
+            Opcao.DELETAR.value,
+            Opcao.CONSULTAR.value,
+            Opcao.SAIR.value
+        ]
+    }
 
-    if opcao is None:
-        opcao = Opcao.SAIR
+    print('-' * 50)
+    resposta = prompt(prompt_opcao, style=estilo)
+    opcao = resposta['opcao']
 
-    if opcao != Opcao.CADASTRO and opcao != Opcao.SAIR:
-        prompt = TerminalMenu(['Título', 'Autor', 'Ano e Edição', 'Sair'], title='Escolha um filtro: ')
-        filtro = prompt.show()
+    filtro = Filtro.SAIR
+    if opcao != 'Cadastrar um livro' and opcao != 'Sair':
+        prompt_filtro = {
+            'type': 'list',
+            'name': 'filtro',
+            'message': 'Escolha uma opção:',
+            'help': 'Use as setinhas',
+            'choices': [
+                Filtro.TITULO.value,
+                Filtro.AUTOR.value,
+                Filtro.ANO_EDI.value,
+                Filtro.SAIR.value
+            ]
+        }
 
-        if filtro is None:
-            filtro = Filtro.SAIR
+        resposta = prompt(prompt_filtro, style=estilo)
+        filtro = resposta['filtro']
 
     return Opcao(opcao), Filtro(filtro)
 
@@ -43,19 +72,19 @@ def requisicao(opcao: Opcao, filtro: Filtro):
         return
 
     elif opcao == Opcao.ALTERAR:
-        livros = consultar_livros(int(filtro))
+        livros = consultar_livros(filtro)
         escolhido = escolher_livro(livros)
         if escolhido:
             modificar_livro(escolhido)
 
     elif opcao == Opcao.DELETAR:
-        livros = consultar_livros(int(filtro))
+        livros = consultar_livros(filtro)
         escolhido = escolher_livro(livros)
         if escolhido:
             remover_livro(escolhido)
 
     elif opcao == Opcao.CONSULTAR:
-        livros = consultar_livros(int(filtro))
+        livros = consultar_livros(filtro)
         if livros:
             print('Livros encontrados:')
             for livro in livros:
@@ -77,13 +106,17 @@ def cadastro_livro():
     ano = input('Ano de publicação: ')
     edicao = input('Edição: ')
 
-    livro = {
-        "titulo": titulo,
-        "autor": autor,
-        "ano": ano,
-        "edicao": edicao
-    }
-    print(servidor.cadastrar(livro))
+    if titulo and autor and ano and edicao:
+        livro = {
+            "titulo": titulo,
+            "autor": autor,
+            "ano": ano,
+            "edicao": edicao
+        }
+        print(servidor.cadastrar(livro))
+
+    else:
+        print('Todos os campos são obrigatórios.')
 
 
 def consultar_livros(filtro):
@@ -103,7 +136,7 @@ def consultar_livros(filtro):
         busca = (ano, edicao)
 
     # noinspection PyUnboundLocalVariable
-    return servidor.filtrar(filtro, busca)
+    return servidor.filtrar(filtro.value, busca)
 
 
 def modificar_livro(livro):
@@ -126,14 +159,18 @@ def modificar_livro(livro):
     ano = input('Novo ano de publicação: ')
     edicao = input('Nova edição...........: ')
 
-    livro = {
-        'codigo': codigo,
-        'titulo': titulo,
-        'autor': autor,
-        'ano': ano,
-        'edicao': edicao
-    }
-    print(servidor.alterar(livro))
+    if titulo and autor and ano and edicao:
+        livro = {
+            'codigo': codigo,
+            'titulo': titulo,
+            'autor': autor,
+            'ano': ano,
+            'edicao': edicao
+        }
+        print(servidor.alterar(livro))
+
+    else:
+        print('Todos os campos são obrigatórios.')
 
 
 def remover_livro(livro):

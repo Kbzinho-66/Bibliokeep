@@ -1,17 +1,17 @@
-from enum import IntEnum
+from enum import Enum
 
 
-class Opcao(IntEnum):
-    CADASTRO = 0
-    ALTERAR = 1
-    DELETAR = 2
-    CONSULTAR = 3
-    SAIR = 4
-    FILTRAR = 5
+class Opcao(Enum):
+    CADASTRO = 'Cadastrar um livro'
+    ALTERAR = 'Alterar um livro'
+    DELETAR = 'Deletar um livro'
+    CONSULTAR = 'Consultar um livro'
+    SAIR = 'Sair'
+    FILTRAR = 'Filtrar'
 
 
-class Filtro(IntEnum):
-    TITULO = 0
-    AUTOR = 1
-    ANO_EDI = 2
-    SAIR = 3
+class Filtro(Enum):
+    TITULO = 'Filtrar por título'
+    AUTOR = 'Filtrar por autor'
+    ANO_EDI = 'Filtrar por ano e edição'
+    SAIR = 'Sair'

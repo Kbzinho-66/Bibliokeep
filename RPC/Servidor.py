@@ -11,7 +11,6 @@ def main():
     servidor.register_function(deleta_livro, "deletar")
     servidor.register_function(altera_livro, "alterar")
 
-    # TODO Dar um jeito de fechar melhor
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:
@@ -89,12 +88,18 @@ def cadastra_livro(livro):
         banco_livros.close()
 
     print('Livro inserido:')
-    print(livro)
+    titulo = livro['titulo']
+    autor = livro['autor']
+    ano = livro['ano']
+    edicao = livro['edicao']
+    print(f'Para: {titulo} - {autor} ({ano}, {edicao}ª edição)')
 
     return 'Livro inserido'
 
 
 def consulta_livros(filtro, busca):
+    filtro = Filtro(filtro)
+
     banco_livros = psycopg2.connect(
         host='localhost',
         database='livros',
