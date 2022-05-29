@@ -2,7 +2,8 @@ import xmlrpc.client
 from typing import Tuple
 
 from Codigos import Opcao, Filtro
-from PyInquirer import style_from_dict, Token, prompt
+from PyInquirer import prompt
+from examples import custom_style_2 as estilo
 
 
 def main():
@@ -15,19 +16,10 @@ def main():
 
 
 def menu() -> Tuple[Opcao, Filtro]:
-    estilo = style_from_dict({
-        Token.Separator: '#6C6C6C',
-        Token.QuestionMark: '#FF9D00 bold',
-        Token.Selected: '#5F819D',
-        Token.Pointer: '#FF9D00 bold',
-        Token.Answer: '#5F819D bold',
-    })
-
     prompt_opcao = {
         'type': 'list',
         'name': 'opcao',
         'message': 'Escolha uma opção:',
-        'instruction': 'Use as setinhas',
         'choices': [
             Opcao.CADASTRO.value,
             Opcao.ALTERAR.value,
@@ -47,7 +39,6 @@ def menu() -> Tuple[Opcao, Filtro]:
             'type': 'list',
             'name': 'filtro',
             'message': 'Escolha uma opção:',
-            'help': 'Use as setinhas',
             'choices': [
                 Filtro.TITULO.value,
                 Filtro.AUTOR.value,
@@ -71,28 +62,22 @@ def requisicao(opcao: Opcao, filtro: Filtro):
     elif filtro == Filtro.SAIR:
         return
 
-    elif opcao == Opcao.ALTERAR:
-        livros = consultar_livros(filtro)
-        escolhido = escolher_livro(livros)
-        if escolhido:
-            modificar_livro(escolhido)
+    else:
+        if livros := consultar_livros(filtro):
+            if opcao == Opcao.CONSULTAR:
+                print('Livros encontrados:')
+                for livro in livros:
+                    titulo = livro['titulo']
+                    autor = livro['autor']
+                    ano = livro['ano']
+                    edicao = livro['edicao']
+                    print(f'{titulo.strip()} - {autor.strip()}, ({ano}, {edicao}ª edição)')
 
-    elif opcao == Opcao.DELETAR:
-        livros = consultar_livros(filtro)
-        escolhido = escolher_livro(livros)
-        if escolhido:
-            remover_livro(escolhido)
-
-    elif opcao == Opcao.CONSULTAR:
-        livros = consultar_livros(filtro)
-        if livros:
-            print('Livros encontrados:')
-            for livro in livros:
-                titulo = livro['titulo']
-                autor = livro['autor']
-                ano = livro['ano']
-                edicao = livro['edicao']
-                print(f'{titulo.strip()} - {autor.strip()}, ({ano}, {edicao}ª edição)')
+            elif escolhido := escolher_livro(livros):
+                if opcao == Opcao.ALTERAR:
+                    modificar_livro(escolhido)
+                elif opcao == Opcao.DELETAR:
+                    remover_livro(escolhido)
         else:
             print('Nenhum livro encontrado para esse filtro.')
 
@@ -119,7 +104,7 @@ def cadastro_livro():
         print('Todos os campos são obrigatórios.')
 
 
-def consultar_livros(filtro):
+def consultar_livros(filtro: Filtro):
     """
     Vai ler o filtro escolhido, procurar todos os livros que se encaixam
     e retornar uma lista com os primeiros 20 resultados.
@@ -174,8 +159,17 @@ def modificar_livro(livro):
 
 
 def remover_livro(livro):
-    servidor = xmlrpc.client.ServerProxy('http://localhost:13000')
-    print(servidor.deletar(livro))
+    confirmacao = [{
+        'type': 'confirm',
+        'message': 'Confirmar a exclusão?',
+        'name': 'excluir',
+        'default': False,
+    }]
+
+    respostas = prompt(confirmacao, style=estilo)
+    if respostas['excluir']:
+        servidor = xmlrpc.client.ServerProxy('http://localhost:13000')
+        print(servidor.deletar(livro))
 
 
 def escolher_livro(livros):

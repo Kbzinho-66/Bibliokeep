@@ -28,50 +28,6 @@ def cadastra_livro(livro):
 
     db = banco_livros.cursor()
 
-    db.execute(
-        ''' SELECT codigo FROM autor WHERE nome = %s
-        ''', (livro['autor'],)
-    )
-    try:
-        cod_autor, *_ = db.fetchone()
-    except TypeError:
-        db.execute('SELECT max(codigo) from autor;')
-        cod_autor, *_ = db.fetchone()
-        cod_autor += 1
-
-        db.execute(
-            ''' INSERT INTO autor (codigo, nome) VALUES (%s, %s)
-            ''', (cod_autor, livro['autor'])
-        )
-
-    db.execute(
-        ''' SELECT codigo FROM livros WHERE titulo = %s
-        ''', (livro['titulo'],)
-    )
-    try:
-        cod_livro, *_ = db.fetchone()
-    except TypeError:
-        db.execute('SELECT max(codigo) from livros;')
-        cod_livro, *_ = db.fetchone()
-        cod_livro += 1
-
-        db.execute(
-            ''' INSERT INTO livros (codigo, titulo) VALUES (%s, %s)
-            ''', (cod_livro, livro['titulo'])
-        )
-
-    db.execute(
-        ''' INSERT INTO edicao (codigolivro, numero, ano) VALUES (%s, %s, %s)
-            ON CONFLICT DO NOTHING;
-        ''', (cod_livro, livro['edicao'], livro['ano'])
-    )
-
-    db.execute(
-        ''' INSERT INTO livroautor (codigolivro, codigoautor) VALUES (%s, %s)
-            ON CONFLICT DO NOTHING;
-        ''', (cod_livro, cod_autor)
-    )
-
     db.execute('SELECT max(codigo) from livrostemp;')
     cod_livro, *_ = db.fetchone()
     cod_livro += 1
@@ -116,12 +72,14 @@ def consulta_livros(filtro, busca):
             ''' SELECT * FROM livrostemp WHERE titulo ~ %s
             ''', (busca,)
         )
+
     elif filtro == Filtro.AUTOR:
         print(f'Autor = {busca}')
         db.execute(
             ''' SELECT * FROM livrostemp WHERE autor ~ %s
             ''', (busca,)
         )
+
     elif filtro == Filtro.ANO_EDI:
         ano, edicao = busca
         print(f'Ano = {ano} e Edição = {edicao}')
@@ -165,18 +123,7 @@ def deleta_livro(livro):
     titulo = livro['titulo']
     autor = livro['autor']
     print(f'{titulo.strip()}, {autor}')
-    db.execute(
-        ''' DELETE FROM edicao WHERE codigolivro = %s
-        ''', (codigo,)
-    )
-    db.execute(
-        ''' DELETE FROM livroautor WHERE codigolivro = %s
-        ''', (codigo,)
-    )
-    db.execute(
-        ''' DELETE FROM livros WHERE codigo = %s;
-        ''', (codigo,)
-    )
+
     db.execute(
         ''' DELETE FROM livrostemp WHERE codigo = %s;
         ''', (codigo,)
@@ -215,25 +162,6 @@ def altera_livro(livro):
     ano = livro['ano']
     edicao = livro['edicao']
     print(f'Para: {titulo} - {autor} ({ano}, {edicao}ª edição)')
-
-    db.execute(
-        ''' UPDATE livros
-            SET titulo = %s
-            WHERE titulo = %s
-        ''', (livro['titulo'], livro['titulo'])
-    )
-
-    db.execute(
-        ''' SELECT codigoautor FROM livroautor WHERE codigolivro = %s
-        ''', (livro['codigo'],)
-    )
-    cod_autor, *_ = db.fetchone()
-    db.execute(
-        ''' UPDATE autor
-            SET nome = %s
-            WHERE codigo = %s
-        ''', (livro['autor'], cod_autor)
-    )
 
     db.execute(
         ''' UPDATE livrostemp
